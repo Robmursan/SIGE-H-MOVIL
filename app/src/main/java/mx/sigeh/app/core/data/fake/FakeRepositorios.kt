@@ -22,7 +22,7 @@ import mx.sigeh.app.core.data.ComandoSync
 import mx.sigeh.app.core.data.IncidenciaRepository
 import mx.sigeh.app.core.data.MovimientosRepository
 import mx.sigeh.app.core.data.PaseListaOfflineRepository
-import mx.sigeh.app.core.data.ProgramacionRepository
+import mx.sigeh.app.core.data.AgendaOfflineRepository
 import mx.sigeh.app.core.data.RespuestaConvenio
 import mx.sigeh.app.core.data.ResultadoLogin
 import mx.sigeh.app.core.data.ResultadoLote
@@ -124,9 +124,9 @@ class FakeAlcanceRepository @Inject constructor(
         listOf(DatosFicticios.medicinaInterna, DatosFicticios.cirugiaGeneral).firstOrNull { it.id == servicioId }?.nombre
 }
 
-class FakeProgramacionRepository @Inject constructor(
+class FakeAgendaOfflineRepository @Inject constructor(
     private val cachedProgramacionDao: CachedProgramacionDao,
-) : ProgramacionRepository {
+) : AgendaOfflineRepository {
     override fun observarAgenda(servicioId: String, turnoId: String): Flow<Agenda?> {
         if (servicioId != DatosFicticios.medicinaInterna.id || turnoId != DatosFicticios.matutino.id) {
             return flowOf(null)
