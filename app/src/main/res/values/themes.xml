@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Tema de ventana mínimo. Todo el estilo vive en Compose (SigehTheme).
+        El modo oscuro queda fuera de M0: agregar values-night/ cuando exista SigehDarkColorScheme.
+    -->
+    <style name="Theme.SIGEH" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sigeh_fondo</item>
+    </style>
+
+    <color name="sigeh_fondo">#FFF4F7F7</color>
+</resources>

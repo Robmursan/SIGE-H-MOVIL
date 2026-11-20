@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Respaldo automático (Android 11 y anteriores). allowBackup="false" ya lo desactiva;
+    estas exclusiones son una segunda barrera: la base Room y la sesión cifrada nunca se respaldan.
+-->
+<full-backup-content>
+    <exclude domain="database" path="." />
+    <exclude domain="file" path="datastore/" />
+    <exclude domain="sharedpref" path="." />
+</full-backup-content>
