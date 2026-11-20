@@ -77,7 +77,11 @@ class FakeDataSeeder @Inject constructor(
     }
 }
 
-/** En M0 cualquier usuario y contraseña no vacíos entran, pero el inicio de sesión requiere red. */
+/**
+ * Cualquier usuario y contraseña no vacíos entran, pero el inicio de sesión requiere red.
+ * Desde M2 la sesión trae asignaciones como las de `/auth/me` (una sin servicio), para que el
+ * selector y las facultades funcionen igual que en modo real.
+ */
 class FakeAuthRepository @Inject constructor(
     private val conectividad: ConnectivityObserver,
     private val ids: GeneradorIds,
@@ -91,6 +95,8 @@ class FakeAuthRepository @Inject constructor(
                 usuarioId = DatosFicticios.usuario.id,
                 nombreCorto = DatosFicticios.usuario.nombreCorto,
                 accessToken = "m0-ficticio-${ids.nuevoId()}",
+                sessionId = DatosFicticios.SESION_ACTUAL_ID,
+                asignaciones = DatosFicticios.asignaciones,
             ),
         )
     }
