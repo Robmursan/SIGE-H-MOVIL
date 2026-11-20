@@ -85,6 +85,8 @@ class RemotoPaseListaRepository @Inject constructor(
 
     override fun acuse(programacionId: String): AcuseCaptura? = cache.acuse(programacionId)
 
+    override fun zonaHoraria(): String? = cache.zonaHoraria()
+
     override fun limpiar() = cache.limpiar()
 
     private fun registrarSiEsErrorDeLaApp(operacion: String, error: ApiError) {

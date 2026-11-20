@@ -72,5 +72,11 @@ private fun SigehRaiz(viewModel: SigehAppViewModel = hiltViewModel()) {
         }
     }
 
-    SigehNavHost(navController = navController, inicio = inicio)
+    val programacionVisible by viewModel.programacionVisible.collectAsStateWithLifecycle()
+    SigehNavHost(
+        navController = navController,
+        inicio = inicio,
+        funcionesFuturas = viewModel.funcionesFuturas,
+        programacionVisible = programacionVisible,
+    )
 }

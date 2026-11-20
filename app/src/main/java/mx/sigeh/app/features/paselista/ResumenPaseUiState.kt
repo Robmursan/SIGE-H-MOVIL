@@ -11,6 +11,9 @@ import mx.sigeh.app.core.model.EstadoPaseLista
 import mx.sigeh.app.core.model.NecesidadCobertura
 import mx.sigeh.app.core.model.PaseLista
 
+/** Indicador de sincronización de una fila del pase offline de M0 (detrás de `FUNCIONES_FUTURAS`). */
+enum class IndicadorFila { SINCRONIZADO, EN_TELEFONO, ENVIANDO, CONFLICTO, SIN_CAPTURAR, DENEGADO, EN_REVISION, NINGUNO }
+
 enum class EstadoPaso { COMPLETO, EN_CURSO, PENDIENTE }
 
 data class PasoEnvio(val titulo: String, val detalle: String, val estado: EstadoPaso)

@@ -142,6 +142,8 @@ class FakePaseListaRepository @Inject constructor(
 
     override fun acuse(programacionId: String): AcuseCaptura? = cache.acuse(programacionId)
 
+    override fun zonaHoraria(): String? = cache.zonaHoraria()
+
     /** Solo la caché de la app; el «servidor» Fake conserva sus registros como lo haría el real. */
     override fun limpiar() = cache.limpiar()
 

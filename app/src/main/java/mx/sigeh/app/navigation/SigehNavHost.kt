@@ -11,6 +11,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +21,9 @@ import androidx.navigation.toRoute
 import mx.sigeh.app.core.designsystem.components.SigehBottomBar
 import mx.sigeh.app.core.designsystem.components.SigehTab
 import mx.sigeh.app.features.agenda.AgendaRoute
+import mx.sigeh.app.features.cuenta.AccesosFuturos
+import mx.sigeh.app.features.cuenta.CuentaRoute
+import mx.sigeh.app.features.detallejornada.DetalleJornadaRoute
 import mx.sigeh.app.features.incidencias.IncidenciasRoute
 import mx.sigeh.app.features.incidencias.RegistrarIncidenciaRoute
 import mx.sigeh.app.features.incorporacion.RecepcionEventualRoute
@@ -28,29 +32,36 @@ import mx.sigeh.app.features.movimientos.MovimientosRoute
 import mx.sigeh.app.features.movimientos.PaseSalidaRoute
 import mx.sigeh.app.features.paselista.PaseListaRoute
 import mx.sigeh.app.features.paselista.ResumenPaseRoute
+import mx.sigeh.app.features.programacion.ProgramacionRoute
 import mx.sigeh.app.features.selectorambito.SelectorAmbitoRoute
 import mx.sigeh.app.features.sincronizacion.ConflictoRoute
 import mx.sigeh.app.features.sincronizacion.SincronizacionRoute
 
 /**
- * Login → SelectorAmbito → grafo principal (Pase, Incidencias, Movimientos, Agenda).
- * Los destinos de detalle no muestran la barra inferior.
+ * Login → SelectorAmbito → grafo principal (Pase de lista · Programación · Cuenta, prompt M2 §7.4).
+ * Los destinos de detalle no muestran la barra inferior. Las pantallas de M0 sin backend (cola
+ * offline, incidencias, movimientos…) solo se registran con [funcionesFuturas].
+ *
+ * @param programacionVisible el servicio elegido tiene `PROGRAMACION_CONSULTAR`.
  */
 @Composable
 fun SigehNavHost(
     navController: NavHostController,
     inicio: SigehDestino,
+    funcionesFuturas: Boolean,
+    programacionVisible: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val entrada by navController.currentBackStackEntryAsState()
-    val tabActual = entrada?.destination?.tabActual()
+    val pestanas = pestanasVisibles(funcionesFuturas, programacionVisible)
+    val tabActual = entrada?.destination?.tabActual(pestanas)
 
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (tabActual != null) {
-                SigehBottomBar(actual = tabActual, onSeleccionar = { navController.irAPestana(it) })
+                SigehBottomBar(pestanas = pestanas, actual = tabActual, onSeleccionar = { navController.irAPestana(it) })
             }
         },
     ) { padding ->
@@ -85,63 +96,93 @@ fun SigehNavHost(
             navigation<SigehDestino.Principal>(startDestination = SigehDestino.PaseLista) {
                 composable<SigehDestino.PaseLista> {
                     PaseListaRoute(
-                        onRegresar = { navController.volverAlSelector() },
-                        onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
-                        onAbrirConflicto = { navController.navigate(SigehDestino.Conflicto(it)) },
-                        onAbrirResumen = { navController.navigate(SigehDestino.ResumenPase) },
+                        onCambiarServicio = { navController.volverAlSelector() },
+                        onAbrirDetalle = { navController.navigate(SigehDestino.DetalleJornada(it)) },
+                        onIniciarSesion = { navController.irALogin(sesionVencida = true) },
                     )
                 }
-                composable<SigehDestino.Incidencias> {
-                    IncidenciasRoute(
-                        onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
-                        onRegistrar = { navController.navigate(SigehDestino.RegistrarIncidencia(it)) },
+                composable<SigehDestino.Programacion> {
+                    ProgramacionRoute(
+                        onCambiarServicio = { navController.volverAlSelector() },
+                        onIniciarSesion = { navController.irALogin(sesionVencida = true) },
                     )
                 }
-                composable<SigehDestino.Movimientos> {
-                    MovimientosRoute(
-                        onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
-                        onRegistrarPaseSalida = { navController.navigate(SigehDestino.PaseSalida) },
+                composable<SigehDestino.Cuenta> {
+                    CuentaRoute(
+                        onCambiarServicio = { navController.volverAlSelector() },
+                        onSesionCerrada = { navController.irALogin(sesionVencida = false) },
+                        accesosFuturos = AccesosFuturos(
+                            onSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
+                            onResumenPase = { navController.navigate(SigehDestino.ResumenPase) },
+                            onAgenda = { navController.navigate(SigehDestino.Agenda) },
+                        ),
                     )
                 }
-                composable<SigehDestino.Agenda> {
-                    AgendaRoute(onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) })
-                }
+                if (funcionesFuturas) pestanasFuturas(navController)
             }
 
-            composable<SigehDestino.RegistrarIncidencia> {
-                RegistrarIncidenciaRoute(onCerrar = { navController.popBackStack() })
+            composable<SigehDestino.DetalleJornada> {
+                DetalleJornadaRoute(onRegresar = { navController.popBackStack() })
             }
-            composable<SigehDestino.ResumenPase> {
-                ResumenPaseRoute(
-                    onRegresar = { navController.popBackStack() },
-                    onAbrirConflicto = { navController.navigate(SigehDestino.Conflicto(it)) },
-                    onAbrirRecepcion = { navController.navigate(SigehDestino.RecepcionEventual(it)) },
-                )
-            }
-            composable<SigehDestino.PaseSalida> {
-                PaseSalidaRoute(onCerrar = { navController.popBackStack() })
-            }
-            composable<SigehDestino.RecepcionEventual> {
-                RecepcionEventualRoute(onCerrar = { navController.popBackStack() })
-            }
-            composable<SigehDestino.Sincronizacion> {
-                SincronizacionRoute(
-                    onRegresar = { navController.popBackStack() },
-                    onResolver = { navController.navigate(SigehDestino.Conflicto(it)) },
-                )
-            }
-            composable<SigehDestino.Conflicto> {
-                ConflictoRoute(
-                    onRegresar = { navController.popBackStack() },
-                    onResuelto = { navController.popBackStack() },
-                )
-            }
+
+            if (funcionesFuturas) destinosFuturos(navController)
         }
     }
 }
 
-private fun NavDestination.tabActual(): SigehTab? =
-    SigehTab.entries.firstOrNull { tab -> hierarchy.any { it.hasRoute(tab.destino::class) } }
+/** Pestañas de M0 (solo con `FUNCIONES_FUTURAS`). */
+private fun NavGraphBuilder.pestanasFuturas(navController: NavHostController) {
+    composable<SigehDestino.Incidencias> {
+        IncidenciasRoute(
+            onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
+            onRegistrar = { navController.navigate(SigehDestino.RegistrarIncidencia(it)) },
+        )
+    }
+    composable<SigehDestino.Movimientos> {
+        MovimientosRoute(
+            onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) },
+            onRegistrarPaseSalida = { navController.navigate(SigehDestino.PaseSalida) },
+        )
+    }
+}
+
+/** Destinos de detalle de M0: cola offline, resumen y envío del pase, salida y recepción de eventual. */
+private fun NavGraphBuilder.destinosFuturos(navController: NavHostController) {
+    composable<SigehDestino.Agenda> {
+        AgendaRoute(onAbrirSincronizacion = { navController.navigate(SigehDestino.Sincronizacion) })
+    }
+    composable<SigehDestino.RegistrarIncidencia> {
+        RegistrarIncidenciaRoute(onCerrar = { navController.popBackStack() })
+    }
+    composable<SigehDestino.ResumenPase> {
+        ResumenPaseRoute(
+            onRegresar = { navController.popBackStack() },
+            onAbrirConflicto = { navController.navigate(SigehDestino.Conflicto(it)) },
+            onAbrirRecepcion = { navController.navigate(SigehDestino.RecepcionEventual(it)) },
+        )
+    }
+    composable<SigehDestino.PaseSalida> {
+        PaseSalidaRoute(onCerrar = { navController.popBackStack() })
+    }
+    composable<SigehDestino.RecepcionEventual> {
+        RecepcionEventualRoute(onCerrar = { navController.popBackStack() })
+    }
+    composable<SigehDestino.Sincronizacion> {
+        SincronizacionRoute(
+            onRegresar = { navController.popBackStack() },
+            onResolver = { navController.navigate(SigehDestino.Conflicto(it)) },
+        )
+    }
+    composable<SigehDestino.Conflicto> {
+        ConflictoRoute(
+            onRegresar = { navController.popBackStack() },
+            onResuelto = { navController.popBackStack() },
+        )
+    }
+}
+
+private fun NavDestination.tabActual(pestanas: List<SigehTab>): SigehTab? =
+    pestanas.firstOrNull { tab -> hierarchy.any { it.hasRoute(tab.destino::class) } }
 
 private fun NavHostController.irAPestana(tab: SigehTab) {
     navigate(tab.destino) {

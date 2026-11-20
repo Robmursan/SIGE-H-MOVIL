@@ -45,6 +45,9 @@ interface PaseListaRepository {
     /** Último acuse recibido para esa jornada en esta sesión («Ver acuse»). */
     fun acuse(programacionId: String): AcuseCaptura?
 
+    /** `zonaHoraria` de la última página consultada (las horas se muestran en ella). */
+    fun zonaHoraria(): String?
+
     /** Purga la caché en memoria (cierre de sesión o cambio de persona). */
     fun limpiar()
 }
@@ -87,9 +90,13 @@ class CachePaseLista {
     private val jornadas = ConcurrentHashMap<String, JornadaPase>()
     private val acuses = ConcurrentHashMap<String, AcuseCaptura>()
 
+    @Volatile
+    private var zona: String? = null
+
     /** La primera página reemplaza lo anterior (otro servicio, fecha u horario); las siguientes se agregan. */
     fun registrarPagina(pagina: PaginaPaseLista, primeraPagina: Boolean) {
         if (primeraPagina) jornadas.clear()
+        zona = pagina.zonaHoraria
         pagina.jornadas.forEach { jornadas[it.programacionId] = it }
     }
 
@@ -101,8 +108,11 @@ class CachePaseLista {
 
     fun acuse(programacionId: String): AcuseCaptura? = acuses[programacionId]
 
+    fun zonaHoraria(): String? = zona
+
     fun limpiar() {
         jornadas.clear()
         acuses.clear()
+        zona = null
     }
 }
