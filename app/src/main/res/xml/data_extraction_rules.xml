@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+: la transferencia entre dispositivos ignora allowBackup, por eso se excluye
+    explícitamente la base Room y la sesión cifrada en ambos casos.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="." />
+        <exclude domain="file" path="datastore/" />
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="." />
+        <exclude domain="file" path="datastore/" />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

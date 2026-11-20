@@ -1,0 +1,5 @@
+# El contrato OpenAPI se verifica por SHA-256: se guarda byte a byte, sin conversión de fin de línea.
+docs/mobile/contrato/*.json -text
+# Scripts de Gradle con el fin de línea que exige cada sistema.
+gradlew text eol=lf
+*.bat text eol=crlf
