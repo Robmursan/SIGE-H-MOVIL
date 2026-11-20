@@ -7,7 +7,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockWebServer
 import mx.sigeh.app.core.auth.Session
 import mx.sigeh.app.core.model.SigehJson
+import mx.sigeh.app.core.model.EstadoCaptura
+import mx.sigeh.app.core.network.asistencia.AsistenciaApi
+import mx.sigeh.app.core.network.asistencia.CapturarAsistenciaDto
 import mx.sigeh.app.core.network.iam.IamApi
+import mx.sigeh.app.testutil.ContratoAsistencia
 import mx.sigeh.app.core.network.iam.LoginRequest
 import mx.sigeh.app.testutil.ContratoIam
 import mx.sigeh.app.testutil.RelojFijo
@@ -35,6 +39,7 @@ class RenovacionSesionTest {
     private val reloj = RelojFijo(5_000_000L)
     private lateinit var sesiones: SessionStoreEnMemoria
     private lateinit var api: IamApi
+    private lateinit var asistenciaApi: AsistenciaApi
 
     private fun sesionCon(expiraEnMillis: Long) = Session(
         usuarioId = ContratoIam.USUARIO_ID,
@@ -52,7 +57,35 @@ class RenovacionSesionTest {
             .addInterceptor(AuthInterceptor(refresher))
             .authenticator(SesionAuthenticator(refresher))
             .build()
-        api = retrofitPara(servidor, cliente).create(IamApi::class.java)
+        val retrofit = retrofitPara(servidor, cliente)
+        api = retrofit.create(IamApi::class.java)
+        asistenciaApi = retrofit.create(AsistenciaApi::class.java)
+    }
+
+    @Test
+    fun tokenPorVencerAntesDeCapturar_seRenuevaYLaCapturaSaleUnaVezConSuClave() = runTest {
+        prepararCliente(sesionCon(expiraEnMillis = reloj.ahora + 5_000))
+        servidor.enqueue(respuestaJson(200, ContratoIam.tokens("acceso-2", ContratoIam.REFRESH_2)))
+        servidor.enqueue(respuestaJson(200, ContratoAsistencia.acuse()))
+        val clave = "3f2c9e1a-0000-4000-8000-00000000c1a7"
+
+        asistenciaApi.capturar(ContratoAsistencia.PROGRAMACION_PENDIENTE, clave, CapturarAsistenciaDto.primeraCaptura(EstadoCaptura.PRESENTE))
+
+        assertEquals("/api/v1/auth/refresh", servidor.takeRequest().url.encodedPath)
+        val captura = servidor.takeRequest()
+        assertEquals("Bearer acceso-2", captura.headers["Authorization"])
+        assertEquals(clave, captura.headers["Idempotency-Key"])
+        assertEquals("El PUT sale una sola vez", 2, servidor.requestCount)
+    }
+
+    @Test
+    fun sesiones_esRutaProtegida() = runTest {
+        prepararCliente(sesionCon(expiraEnMillis = reloj.ahora + 200_000))
+        servidor.enqueue(respuestaJson(200, ContratoIam.SESIONES))
+
+        api.sesiones()
+
+        assertEquals("Bearer acceso-1", servidor.takeRequest().headers["Authorization"])
     }
 
     @Before
