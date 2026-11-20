@@ -4,39 +4,84 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-/** Paleta exacta de SIGE-H (prompt §4) más los tonos complementarios usados en los mockups. */
+/**
+ * Paleta de SIGE-H alineada con el sistema web (SIGE-H-Fontend `src/styles/_tokens.scss`), para que
+ * web y móvil se vean iguales (prompt M2 §8). Entre paréntesis, el token web equivalente.
+ *
+ * Única diferencia deliberada: el texto tenue es `#475569` (prompt M2) y no `#64748B`
+ * (`--sigeh-text-muted`), para tener contraste 7:1 en pantallas usadas en pasillo.
+ */
 object SigehColors {
-    val Primary = Color(0xFF0E5C63)
+    /** Barra superior y marca (`--sigeh-primary-900`). */
+    val Marca = Color(0xFF0F2942)
+
+    /** Texto e íconos sobre [Marca] (`--sigeh-text-on-dark`). */
+    val SobreMarca = Color(0xFFF8FAFC)
+
+    /** Texto secundario sobre [Marca]. */
+    val SobreMarcaTenue = Color(0xFFCBD5E1)
+
+    /** Botones principales (`--sigeh-primary-800`). */
+    val Primary = Color(0xFF163A5F)
     val OnPrimary = Color(0xFFFFFFFF)
-    val PrimaryContainer = Color(0xFFD4ECEB)
-    val OnPrimaryContainer = Color(0xFF08393D)
-    val Background = Color(0xFFF4F7F7)
+
+    /** `--sigeh-primary-100`. */
+    val PrimaryContainer = Color(0xFFDBEAFE)
+    val OnPrimaryContainer = Color(0xFF0F2942)
+
+    /** Acento clínico (`--sigeh-clinical-700`): progreso y confirmaciones del servidor. */
+    val Acento = Color(0xFF0F766E)
+
+    /** `--sigeh-clinical-50`. */
+    val AcentoSuave = Color(0xFFF0FDFA)
+
+    /** `--sigeh-clinical-800`. */
+    val AcentoTexto = Color(0xFF115E59)
+
+    /** `--sigeh-surface-bg`. */
+    val Background = Color(0xFFF4F7FA)
+
+    /** `--sigeh-surface-card`. */
     val Surface = Color(0xFFFFFFFF)
-    val SurfaceVariant = Color(0xFFE8EFEF)
-    val OnSurface = Color(0xFF132124)
-    val OnSurfaceVariant = Color(0xFF4B5B5F)
-    val Outline = Color(0xFFA9B8BB)
-    val OutlineVariant = Color(0xFFDCE4E5)
-    val InverseSurface = Color(0xFF24363A)
-    val Error = Color(0xFFA3340F)
 
-    /** Fondo de una opción seleccionada (servicio, turno, tipo de incidencia). */
-    val SeleccionSuave = Color(0xFFEEF7F6)
+    /** Fondo neutro de chips y segmentos (estado neutro del prompt M2). */
+    val SurfaceVariant = Color(0xFFF1F5F9)
 
-    /** Títulos de sección y texto de apoyo oscuro. */
-    val Tinta = Color(0xFF24363A)
+    /** `--sigeh-text-primary`. */
+    val OnSurface = Color(0xFF0F172A)
 
-    /** Marcador de posición de los campos. */
-    val Marcador = Color(0xFF6B7A7E)
+    /** Texto tenue (ver nota de la clase). */
+    val OnSurfaceVariant = Color(0xFF475569)
+
+    /** `--sigeh-border-strong`. */
+    val Outline = Color(0xFFCBD5E1)
+
+    /** `--sigeh-border-subtle`. */
+    val OutlineVariant = Color(0xFFE2E8F0)
+
+    /** Banner oscuro «Sin conexión» y superficies invertidas. */
+    val InverseSurface = Color(0xFF0F2942)
+
+    /** `--sigeh-status-critical-text`. */
+    val Error = Color(0xFF991B1B)
+
+    /** Fondo de una opción seleccionada (`--sigeh-primary-50`). */
+    val SeleccionSuave = Color(0xFFEFF6FF)
+
+    /** Títulos de sección y texto de apoyo oscuro (`--sigeh-text-secondary`). */
+    val Tinta = Color(0xFF334155)
+
+    /** Marcador de posición de los campos (`--sigeh-text-muted`). */
+    val Marcador = Color(0xFF64748B)
 
     // Tarjeta oscura de sincronización.
-    val SuperficieOscuraElevada = Color(0xFF31474C)
-    val TextoSobreOscuro = Color(0xFFD5DFE1)
+    val SuperficieOscuraElevada = Color(0xFF163A5F)
+    val TextoSobreOscuro = Color(0xFFCBD5E1)
 
-    // Tarjeta principal de la agenda.
-    val HeroEtiqueta = Color(0xFFCDE8E6)
-    val HeroTexto = Color(0xFFE3F2F1)
-    val HeroChip = Color(0xFF2A7A80)
+    // Tarjeta principal de la agenda (sobre Primary).
+    val HeroEtiqueta = Color(0xFFDBEAFE)
+    val HeroTexto = Color(0xFFEFF6FF)
+    val HeroChip = Color(0xFF1E4E79)
 }
 
 /** Esquema claro. El color dinámico está desactivado para respetar la identidad institucional. */
@@ -49,10 +94,10 @@ val SigehLightColorScheme: ColorScheme = lightColorScheme(
     onSecondary = SigehColors.OnPrimary,
     secondaryContainer = SigehColors.PrimaryContainer,
     onSecondaryContainer = SigehColors.OnPrimaryContainer,
-    tertiary = Color(0xFF1E3A8A),
+    tertiary = SigehColors.Acento,
     onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFE0E8FB),
-    onTertiaryContainer = Color(0xFF1E3A8A),
+    tertiaryContainer = SigehColors.AcentoSuave,
+    onTertiaryContainer = SigehColors.AcentoTexto,
     background = SigehColors.Background,
     onBackground = SigehColors.OnSurface,
     surface = SigehColors.Surface,
@@ -68,13 +113,13 @@ val SigehLightColorScheme: ColorScheme = lightColorScheme(
     surfaceContainerHigh = SigehColors.Surface,
     surfaceContainerHighest = SigehColors.SurfaceVariant,
     inverseSurface = SigehColors.InverseSurface,
-    inverseOnSurface = Color(0xFFFFFFFF),
+    inverseOnSurface = SigehColors.SobreMarca,
     inversePrimary = SigehColors.PrimaryContainer,
     outline = SigehColors.Outline,
     outlineVariant = SigehColors.OutlineVariant,
     error = SigehColors.Error,
     onError = Color(0xFFFFFFFF),
-    errorContainer = Color(0xFFFBE4DA),
-    onErrorContainer = Color(0xFF8A2B0C),
+    errorContainer = Color(0xFFFEF2F2),
+    onErrorContainer = SigehColors.Error,
     scrim = Color(0xFF000000),
 )
