@@ -91,6 +91,13 @@ enum class CausaErrorApi(
 
     /** IAM deshabilitado o su persistencia caída: el backend usa el mismo texto para ambos casos. */
     IAM_NO_DISPONIBLE(503, "IAM no disponible", reintentable = true),
+
+    // Lecturas (`/programaciones`, `/empleados`)
+    INTERVALO_INVALIDO(400, "Intervalo inválido: máximo 168 horas"),
+
+    /** `L3A_READS_ENABLED=false`. */
+    LECTURAS_NO_HABILITADAS(503, "Lecturas aún no habilitadas"),
+    LECTURA_NO_DISPONIBLE(503, "Lectura no disponible", reintentable = true),
     ;
 
     companion object {
