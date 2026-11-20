@@ -87,6 +87,58 @@ object SigehIcons {
         "M2 21a7 7 0 0 1 14 0",
         "m16 11 2 2 4-4",
     )
+
+    // --- M2 ------------------------------------------------------------------------------------
+
+    /** Ausente. */
+    val UserX = icono(
+        "UserX",
+        "M5 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0",
+        "M2 21a7 7 0 0 1 14 0",
+        "m17 8 5 5",
+        "m22 8-5 5",
+    )
+
+    /** Por capturar: círculo punteado (todavía sin estado). */
+    val CircleDashed = icono(
+        "CircleDashed",
+        "M10.1 2.18a10 10 0 0 1 3.8 0",
+        "M17.6 3.72a10 10 0 0 1 2.7 2.7",
+        "M21.82 10.1a10 10 0 0 1 0 3.8",
+        "M20.28 17.6a10 10 0 0 1-2.7 2.7",
+        "M13.9 21.82a10 10 0 0 1-3.8 0",
+        "M6.4 20.28a10 10 0 0 1-2.7-2.7",
+        "M2.18 13.9a10 10 0 0 1 0-3.8",
+        "M3.72 6.4a10 10 0 0 1 2.7-2.7",
+    )
+
+    /** No exigible. */
+    val MinusCircle = icono("MinusCircle", CIRCULO_12_R9, "M8 12h8")
+
+    /** Programación cancelada. */
+    val Ban = icono("Ban", CIRCULO_12_R9, "m5.6 5.6 12.8 12.8")
+
+    /** Módulo deshabilitado o servidor no disponible (503). */
+    val CloudOff = icono(
+        "CloudOff",
+        "m2 2 20 20",
+        "M5.78 5.78A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.3-.19",
+        "M21.53 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7 7 0 0 0 10 5.07",
+    )
+
+    /** Sin permiso en el servicio (403). */
+    val ShieldX = icono(
+        "ShieldX",
+        "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+        "m14.5 9.5-5 5",
+        "m9.5 9.5 5 5",
+    )
+
+    /** Actualizar la aplicación (versión incompatible). */
+    val Download = icono("Download", "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "m7 10 5 5 5-5", "M12 15V3")
+
+    /** Cerrar o cancelar. */
+    val X = icono("X", "M18 6 6 18", "m6 6 12 12")
 }
 
 private const val CIRCULO_12_R9 = "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"
