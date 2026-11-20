@@ -16,8 +16,11 @@ sealed interface ResultadoLogin {
     /** 400/401 genérico: no revela si la cuenta existe (FC-01). */
     data object CredencialesInvalidas : ResultadoLogin
 
-    /** 429: límite persistente de intentos por cuenta o por red. */
-    data object LimiteIntentos : ResultadoLogin
+    /**
+     * 429: límite persistente de intentos por cuenta o por red. [esperaSegundos] sale de
+     * `Retry-After` (60 s si no viene) para la cuenta regresiva del botón.
+     */
+    data class LimiteIntentos(val esperaSegundos: Long) : ResultadoLogin
 
     /** 503 (IAM deshabilitado o persistencia caída) u otra respuesta inesperada del servidor. */
     data object ServicioNoDisponible : ResultadoLogin

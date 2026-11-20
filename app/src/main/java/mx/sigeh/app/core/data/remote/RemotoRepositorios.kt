@@ -10,6 +10,7 @@ import mx.sigeh.app.core.data.AuthRepository
 import mx.sigeh.app.core.data.ResultadoLogin
 import mx.sigeh.app.core.data.ServidorRepository
 import mx.sigeh.app.core.model.RolAlcance
+import mx.sigeh.app.core.network.ApiErrorParser
 import mx.sigeh.app.core.network.iam.AssignmentDto
 import mx.sigeh.app.core.network.iam.IamApi
 import mx.sigeh.app.core.network.iam.LoginRequest
@@ -34,6 +35,7 @@ class IamAuthRepository @Inject constructor(
                 usuarioId = perfil.usuarioId,
                 // /auth/me no devuelve nombre: se muestra el identificador hasta que exista ese dato.
                 nombreCorto = usuario,
+                identificador = usuario,
                 accessToken = tokens.accessToken,
                 refreshToken = tokens.refreshToken,
                 sessionId = tokens.sessionId,
@@ -44,7 +46,11 @@ class IamAuthRepository @Inject constructor(
     } catch (e: HttpException) {
         when (e.code()) {
             400, 401 -> ResultadoLogin.CredencialesInvalidas
-            429 -> ResultadoLogin.LimiteIntentos
+            429 -> ResultadoLogin.LimiteIntentos(
+                esperaSegundos = e.response()?.headers()?.get(ApiErrorParser.ENCABEZADO_RETRY_AFTER)
+                    ?.trim()?.toLongOrNull()?.takeIf { it > 0 }
+                    ?: ApiErrorParser.ESPERA_POR_DEFECTO_S,
+            )
             else -> ResultadoLogin.ServicioNoDisponible
         }
     } catch (_: IOException) {

@@ -39,6 +39,8 @@ data class Session(
      * sesiones guardadas por M0, antes de que existieran.
      */
     val asignaciones: List<AsignacionSesion>? = null,
+    /** Identificador con el que se inició sesión (pantalla de Cuenta). `ProfileDto` no trae nombre. */
+    val identificador: String? = null,
 ) {
     // Nunca exponer tokens en logs ni en volcados de estado.
     override fun toString(): String = "Session(usuarioId=$usuarioId, vencida=$vencida, sessionId=$sessionId)"

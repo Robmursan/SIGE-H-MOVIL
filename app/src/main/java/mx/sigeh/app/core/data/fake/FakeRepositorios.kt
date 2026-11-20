@@ -97,6 +97,7 @@ class FakeAuthRepository @Inject constructor(
                 accessToken = "m0-ficticio-${ids.nuevoId()}",
                 sessionId = DatosFicticios.SESION_ACTUAL_ID,
                 asignaciones = DatosFicticios.asignaciones,
+                identificador = usuario.trim(),
             ),
         )
     }
