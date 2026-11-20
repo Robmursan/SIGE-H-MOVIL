@@ -19,7 +19,9 @@ import mx.sigeh.app.core.auth.EstadoSesion
 import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.auth.SesionManager
 import mx.sigeh.app.core.auth.SessionStore
+import mx.sigeh.app.core.common.Interruptores
 import mx.sigeh.app.core.common.Reloj
+import mx.sigeh.app.core.network.NetworkConfig
 import mx.sigeh.app.core.sync.SyncScheduler
 
 sealed interface EventoApp {
@@ -28,7 +30,10 @@ sealed interface EventoApp {
 
 /**
  * Estado global de la app: decide el destino inicial, reacciona a la sesión vencida (401/403)
- * y purga los datos locales cuando vence el alcance activo.
+ * y, solo en modo Fake, purga los datos locales cuando vence el alcance activo.
+ *
+ * - La cola offline de M0 se reanuda solo con `FUNCIONES_FUTURAS` (la captura de M2 no la usa).
+ * - Con IAM real `/auth/me` no trae vigencias: la vigencia la decide el servidor con un 403.
  */
 @HiltViewModel
 class SigehAppViewModel @Inject constructor(
@@ -37,6 +42,8 @@ class SigehAppViewModel @Inject constructor(
     private val sesionManager: SesionManager,
     private val reloj: Reloj,
     private val syncScheduler: SyncScheduler,
+    private val interruptores: Interruptores,
+    private val networkConfig: NetworkConfig,
 ) : ViewModel() {
 
     val estadoSesion: StateFlow<EstadoSesion> = sessionStore.session
@@ -53,11 +60,18 @@ class SigehAppViewModel @Inject constructor(
     val eventos: Flow<EventoApp> = _eventos.receiveAsFlow()
 
     init {
-        // Al abrir la app con sesión activa se reanuda la cola que quedó pendiente (trabajo único KEEP).
-        viewModelScope.launch {
-            estadoSesion.first { it != EstadoSesion.CARGANDO }
-            if (estadoSesion.value == EstadoSesion.ACTIVA) syncScheduler.programar()
+        if (interruptores.funcionesFuturas) {
+            // Al abrir la app con sesión activa se reanuda la cola que quedó pendiente (trabajo único KEEP).
+            viewModelScope.launch {
+                estadoSesion.first { it != EstadoSesion.CARGANDO }
+                if (estadoSesion.value == EstadoSesion.ACTIVA) syncScheduler.programar()
+            }
         }
+        if (!networkConfig.iamReal) vigilarVigenciaDelAlcance()
+    }
+
+    /** Solo Fake: el catálogo ficticio sí trae vigencias. */
+    private fun vigilarVigenciaDelAlcance() {
         viewModelScope.launch {
             while (isActive) {
                 val ambito = scopeCache.ambitoActual()
