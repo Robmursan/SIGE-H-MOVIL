@@ -59,6 +59,14 @@ class SigehAppViewModel @Inject constructor(
     private val _eventos = Channel<EventoApp>(Channel.BUFFERED)
     val eventos: Flow<EventoApp> = _eventos.receiveAsFlow()
 
+    /** Muestra incidencias, movimientos y demás funciones sin backend (`sigeh.features.futuras`). */
+    val funcionesFuturas: Boolean get() = interruptores.funcionesFuturas
+
+    /** Pestaña Programación: solo con `PROGRAMACION_CONSULTAR` en el servicio elegido. */
+    val programacionVisible: StateFlow<Boolean> = scopeCache.servicio
+        .map { it?.facultades?.consultarProgramacion == true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     init {
         if (interruptores.funcionesFuturas) {
             // Al abrir la app con sesión activa se reanuda la cola que quedó pendiente (trabajo único KEEP).

@@ -17,6 +17,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -58,7 +59,10 @@ private fun EtiquetaCampo(texto: String, pequena: Boolean = false) {
     )
 }
 
-/** Campo de texto con etiqueta arriba (como en los mockups), bordes de 12 dp. */
+/**
+ * Campo de texto con etiqueta arriba (como en los mockups), bordes de 12 dp.
+ * Con [contrasena] lleva un botón para mostrarla u ocultarla; [longitudMaxima] corta lo que exceda.
+ */
 @Composable
 fun SigehTextField(
     etiqueta: String,
@@ -73,18 +77,36 @@ fun SigehTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     testTag: String? = null,
+    longitudMaxima: Int? = null,
 ) {
+    var visible by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         EtiquetaCampo(etiqueta)
         OutlinedTextField(
             value = valor,
-            onValueChange = onValorChange,
+            onValueChange = { nuevo -> onValorChange(if (longitudMaxima != null) nuevo.take(longitudMaxima) else nuevo) },
             enabled = habilitado,
             singleLine = !multilinea,
             minLines = if (multilinea) 3 else 1,
             isError = error != null,
             placeholder = marcador?.let { { Text(it, color = SigehColors.Marcador) } },
-            visualTransformation = if (contrasena) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (contrasena) {
+                {
+                    IconButton(
+                        onClick = { visible = !visible },
+                        modifier = Modifier.then(if (testTag != null) Modifier.testTag("${testTag}_mostrar") else Modifier),
+                    ) {
+                        Icon(
+                            if (visible) SigehIcons.EyeOff else SigehIcons.Eye,
+                            contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
+                            tint = SigehColors.OnSurfaceVariant,
+                        )
+                    }
+                }
+            } else {
+                null
+            },
+            visualTransformation = if (contrasena && !visible) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             shape = SigehShapes.Campo,

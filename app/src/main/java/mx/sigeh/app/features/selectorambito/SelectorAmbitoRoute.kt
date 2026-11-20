@@ -28,8 +28,7 @@ fun SelectorAmbitoRoute(
     SelectorAmbitoScreen(
         estado = estado,
         alcanceVencido = alcanceVencido,
-        onServicioSeleccionado = viewModel::onServicioSeleccionado,
-        onTurnoSeleccionado = viewModel::onTurnoSeleccionado,
+        onSeleccionar = viewModel::onSeleccionar,
         onContinuar = viewModel::onContinuar,
         onCerrarSesion = viewModel::onCerrarSesion,
     )

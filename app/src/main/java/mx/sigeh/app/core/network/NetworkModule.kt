@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import mx.sigeh.app.BuildConfig
 import mx.sigeh.app.core.network.asistencia.AsistenciaApi
 import mx.sigeh.app.core.network.iam.IamApi
+import mx.sigeh.app.core.network.lecturas.LecturasApi
 import mx.sigeh.app.core.network.iam.OperacionesApi
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -83,6 +84,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAsistenciaApi(retrofit: Retrofit): AsistenciaApi = retrofit.create(AsistenciaApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideLecturasApi(retrofit: Retrofit): LecturasApi = retrofit.create(LecturasApi::class.java)
 }
 
 /**

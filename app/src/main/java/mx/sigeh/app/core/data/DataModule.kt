@@ -16,12 +16,14 @@ import mx.sigeh.app.core.data.fake.FakeMovimientosRepository
 import mx.sigeh.app.core.data.fake.FakePaseListaOfflineRepository
 import mx.sigeh.app.core.data.fake.FakePaseListaRepository
 import mx.sigeh.app.core.data.fake.FakeProgramacionRepository
+import mx.sigeh.app.core.data.fake.FakeAgendaOfflineRepository
 import mx.sigeh.app.core.data.fake.FakeServidorRepository
 import mx.sigeh.app.core.data.fake.FakeSesionesRepository
 import mx.sigeh.app.core.data.fake.FakeSyncRepository
 import mx.sigeh.app.core.data.remote.IamAuthRepository
 import mx.sigeh.app.core.data.remote.RemoteServidorRepository
 import mx.sigeh.app.core.data.remote.RemotoPaseListaRepository
+import mx.sigeh.app.core.data.remote.RemotoProgramacionRepository
 import mx.sigeh.app.core.data.remote.RemotoSesionesRepository
 import mx.sigeh.app.core.network.NetworkConfig
 
@@ -43,7 +45,7 @@ abstract class DataModule {
     abstract fun bindAlcanceRepository(impl: FakeAlcanceRepository): AlcanceRepository
 
     @Binds
-    abstract fun bindProgramacionRepository(impl: FakeProgramacionRepository): ProgramacionRepository
+    abstract fun bindAgendaOfflineRepository(impl: FakeAgendaOfflineRepository): AgendaOfflineRepository
 
     @Binds
     abstract fun bindPaseListaOfflineRepository(impl: FakePaseListaOfflineRepository): PaseListaOfflineRepository
@@ -89,6 +91,15 @@ object SeleccionApiModule {
         real: Provider<RemotoPaseListaRepository>,
         fake: Provider<FakePaseListaRepository>,
     ): PaseListaRepository = if (config.asistenciaReal) real.get() else fake.get()
+
+    /** Lectura operativa como el pase: real con `sigeh.api.asistencia=real` (backend con `L3A_READS_ENABLED`). */
+    @Provides
+    @Singleton
+    fun provideProgramacionRepository(
+        config: NetworkConfig,
+        real: Provider<RemotoProgramacionRepository>,
+        fake: Provider<FakeProgramacionRepository>,
+    ): ProgramacionRepository = if (config.asistenciaReal) real.get() else fake.get()
 
     @Provides
     @Singleton

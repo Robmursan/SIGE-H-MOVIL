@@ -25,8 +25,9 @@ fun LoginRoute(
     LoginScreen(
         estado = estado,
         sesionVencida = sesionVencida,
-        onUsuarioChange = viewModel::onUsuarioChange,
+        onIdentificadorChange = viewModel::onIdentificadorChange,
         onContrasenaChange = viewModel::onContrasenaChange,
         onIniciarSesion = viewModel::iniciarSesion,
+        onReintentarServidor = viewModel::consultarServidor,
     )
 }

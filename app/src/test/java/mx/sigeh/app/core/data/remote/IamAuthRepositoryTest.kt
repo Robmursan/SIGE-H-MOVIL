@@ -46,6 +46,7 @@ class IamAuthRepositoryTest {
         val sesion = (resultado as ResultadoLogin.Exito).sesion
         assertEquals(ContratoIam.USUARIO_ID, sesion.usuarioId)
         assertEquals("cuenta_ficticia", sesion.nombreCorto)
+        assertEquals("Se guarda cifrado para la pantalla de Cuenta", "cuenta_ficticia", sesion.identificador)
         assertEquals("acceso-1", sesion.accessToken)
         assertEquals(ContratoIam.REFRESH_1, sesion.refreshToken)
         assertEquals(ContratoIam.SESION_ID, sesion.sessionId)
@@ -87,10 +88,13 @@ class IamAuthRepositoryTest {
     }
 
     @Test
-    fun respuesta429_esLimiteDeIntentos() = runTest {
-        servidor.enqueue(respuestaJson(429, ContratoIam.errorNest(429, "Demasiados intentos", "Too Many Requests")))
+    fun respuesta429_esLimiteDeIntentosConEspera() = runTest {
+        // El 429 real de IAM es {statusCode, message}, sin `error` ni Retry-After: se esperan 60 s.
+        servidor.enqueue(respuestaJson(429, """{"statusCode":429,"message":"Demasiados intentos"}"""))
+        assertEquals(ResultadoLogin.LimiteIntentos(esperaSegundos = 60), repositorio.iniciarSesion("cuenta_ficticia", "x"))
 
-        assertEquals(ResultadoLogin.LimiteIntentos, repositorio.iniciarSesion("cuenta_ficticia", "x"))
+        servidor.enqueue(respuestaJson(429, """{"statusCode":429,"message":"Demasiados intentos"}""", "Retry-After" to "15"))
+        assertEquals(ResultadoLogin.LimiteIntentos(esperaSegundos = 15), repositorio.iniciarSesion("cuenta_ficticia", "x"))
     }
 
     @Test

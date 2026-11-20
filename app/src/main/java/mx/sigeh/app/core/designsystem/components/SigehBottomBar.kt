@@ -20,16 +20,19 @@ import mx.sigeh.app.core.designsystem.icon.SigehIcons
 import mx.sigeh.app.core.designsystem.theme.SigehColors
 import mx.sigeh.app.core.designsystem.theme.SigehTheme
 
+/** Pestañas posibles, en el orden en que aparecen. Incidencias y Movimientos solo con `FUNCIONES_FUTURAS`. */
 enum class SigehTab(val etiqueta: String, val icono: ImageVector) {
-    PASE("Pase", SigehIcons.ClipboardCheck),
+    PASE("Pase de lista", SigehIcons.ClipboardCheck),
     INCIDENCIAS("Incidencias", SigehIcons.AlertTriangle),
     MOVIMIENTOS("Movimientos", SigehIcons.Repeat),
-    AGENDA("Agenda", SigehIcons.Calendar),
+    PROGRAMACION("Programación", SigehIcons.Calendar),
+    CUENTA("Cuenta", SigehIcons.User),
 }
 
-/** Barra inferior: Pase, Incidencias, Movimientos y Agenda. Indicador activo en primaryContainer. */
+/** Barra inferior con las [pestanas] visibles. Indicador activo en primaryContainer. */
 @Composable
 fun SigehBottomBar(
+    pestanas: List<SigehTab>,
     actual: SigehTab,
     onSeleccionar: (SigehTab) -> Unit,
     modifier: Modifier = Modifier,
@@ -37,7 +40,7 @@ fun SigehBottomBar(
     Column(modifier) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-            SigehTab.entries.forEach { tab ->
+            pestanas.forEach { tab ->
                 val seleccionado = tab == actual
                 NavigationBarItem(
                     selected = seleccionado,
@@ -67,5 +70,11 @@ fun SigehBottomBar(
 @Preview(showBackground = true, widthDp = 390)
 @Composable
 private fun SigehBottomBarPreview() {
-    SigehTheme { SigehBottomBar(actual = SigehTab.PASE, onSeleccionar = {}) }
+    SigehTheme {
+        SigehBottomBar(
+            pestanas = listOf(SigehTab.PASE, SigehTab.PROGRAMACION, SigehTab.CUENTA),
+            actual = SigehTab.PASE,
+            onSeleccionar = {},
+        )
+    }
 }

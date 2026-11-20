@@ -81,7 +81,7 @@ fun OptionCard(
 }
 
 @Composable
-private fun RadioIndicador(seleccionado: Boolean, modifier: Modifier = Modifier) {
+internal fun RadioIndicador(seleccionado: Boolean, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .size(22.dp)
