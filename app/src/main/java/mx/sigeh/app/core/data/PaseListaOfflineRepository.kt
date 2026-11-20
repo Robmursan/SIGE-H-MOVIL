@@ -6,10 +6,13 @@ import mx.sigeh.app.core.model.PaseLista
 import mx.sigeh.app.core.model.RegistroAsistenciaServidor
 
 /**
- * ASI: pase de lista (CU-ASI-01), borrador (CU-ASI-05) y envío a validación (CU-ASI-06).
- * Las capturas NO pasan por aquí: se encolan en `ColaComandos` (Room) y se sincronizan con CU-ASI-13.
+ * Pase de lista **offline de M0** (modelo provisional, solo Fake): borrador (CU-ASI-05), envío a
+ * validación (CU-ASI-06) y capturas encoladas en `ColaComandos` (CU-ASI-13). Lo usan las pantallas
+ * que quedan detrás de `FUNCIONES_FUTURAS` hasta que exista el bloque B7 del backend.
+ *
+ * El pase en línea contra el contrato real es [PaseListaRepository] (M2).
  */
-interface PaseListaRepository {
+interface PaseListaOfflineRepository {
     /** Pase del servicio y turno. Emite `null` si no hay programación para ese ámbito. */
     fun observarPase(servicioId: String, turnoId: String): Flow<PaseLista?>
 

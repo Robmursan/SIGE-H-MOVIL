@@ -18,7 +18,7 @@ import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.auth.SessionStore
 import mx.sigeh.app.core.common.FormatoHora
 import mx.sigeh.app.core.data.IncidenciaRepository
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.model.ContextoCaptura
 import mx.sigeh.app.core.sync.ColaComandos
 
@@ -29,7 +29,7 @@ import mx.sigeh.app.core.sync.ColaComandos
 @HiltViewModel
 class RegistrarIncidenciaViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val paseListaRepository: PaseListaRepository,
+    private val paseListaRepository: PaseListaOfflineRepository,
     private val incidenciaRepository: IncidenciaRepository,
     private val colaComandos: ColaComandos,
     private val scopeCache: ScopeCache,

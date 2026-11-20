@@ -21,7 +21,7 @@ import mx.sigeh.app.core.data.CoberturaRepository
 import mx.sigeh.app.core.data.ComandoSync
 import mx.sigeh.app.core.data.IncidenciaRepository
 import mx.sigeh.app.core.data.MovimientosRepository
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.data.ProgramacionRepository
 import mx.sigeh.app.core.data.RespuestaConvenio
 import mx.sigeh.app.core.data.ResultadoLogin
@@ -149,10 +149,10 @@ class FakeProgramacionRepository @Inject constructor(
 }
 
 @Singleton
-class FakePaseListaRepository @Inject constructor(
+class FakePaseListaOfflineRepository @Inject constructor(
     private val servidor: FakeServidor,
     private val seeder: FakeDataSeeder,
-) : PaseListaRepository {
+) : PaseListaOfflineRepository {
 
     private val estado = MutableStateFlow(EstadoPaseLista.BORRADOR)
     private val envioSolicitado = MutableStateFlow<Long?>(null)

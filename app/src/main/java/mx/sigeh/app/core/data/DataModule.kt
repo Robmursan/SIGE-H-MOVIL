@@ -12,7 +12,7 @@ import mx.sigeh.app.core.data.fake.FakeAuthRepository
 import mx.sigeh.app.core.data.fake.FakeCoberturaRepository
 import mx.sigeh.app.core.data.fake.FakeIncidenciaRepository
 import mx.sigeh.app.core.data.fake.FakeMovimientosRepository
-import mx.sigeh.app.core.data.fake.FakePaseListaRepository
+import mx.sigeh.app.core.data.fake.FakePaseListaOfflineRepository
 import mx.sigeh.app.core.data.fake.FakeProgramacionRepository
 import mx.sigeh.app.core.data.fake.FakeServidorRepository
 import mx.sigeh.app.core.data.fake.FakeSyncRepository
@@ -37,7 +37,7 @@ abstract class DataModule {
     abstract fun bindProgramacionRepository(impl: FakeProgramacionRepository): ProgramacionRepository
 
     @Binds
-    abstract fun bindPaseListaRepository(impl: FakePaseListaRepository): PaseListaRepository
+    abstract fun bindPaseListaRepository(impl: FakePaseListaOfflineRepository): PaseListaOfflineRepository
 
     @Binds
     abstract fun bindIncidenciaRepository(impl: FakeIncidenciaRepository): IncidenciaRepository

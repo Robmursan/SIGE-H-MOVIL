@@ -19,14 +19,14 @@ import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.common.FormatoHora
 import mx.sigeh.app.core.common.Reloj
 import mx.sigeh.app.core.data.MovimientosRepository
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.sync.ConnectivityObserver
 
 /** Pase de salida (CU-MOV-14/15/16). El regreso es opcional y nunca se inventa la hora. */
 @HiltViewModel
 class PaseSalidaViewModel @Inject constructor(
     private val scopeCache: ScopeCache,
-    private val paseListaRepository: PaseListaRepository,
+    private val paseListaRepository: PaseListaOfflineRepository,
     private val movimientosRepository: MovimientosRepository,
     private val reloj: Reloj,
     conectividad: ConnectivityObserver,
