@@ -10,6 +10,7 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import mx.sigeh.app.BuildConfig
+import mx.sigeh.app.core.network.asistencia.AsistenciaApi
 import mx.sigeh.app.core.network.iam.IamApi
 import mx.sigeh.app.core.network.iam.OperacionesApi
 import okhttp3.Interceptor
@@ -75,11 +76,16 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOperacionesApi(retrofit: Retrofit): OperacionesApi = retrofit.create(OperacionesApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAsistenciaApi(retrofit: Retrofit): AsistenciaApi = retrofit.create(AsistenciaApi::class.java)
 }
 
 /**
  * Crea Retrofit solo cuando hay URL base. Las interfaces existen únicamente para rutas publicadas
- * por SIGE-H-WEB (IAM V2 y meta/version); el resto sigue pendiente (docs/mobile/contrato-pendiente.md).
+ * en el contrato `sigeh-v1` (IAM V2, meta/version y asistencia); el resto sigue pendiente
+ * (docs/mobile/contrato-pendiente.md).
  */
 class RetrofitFactory(
     private val client: OkHttpClient,

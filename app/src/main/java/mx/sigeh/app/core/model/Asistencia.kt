@@ -6,6 +6,62 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class EstadoAsistencia { PENDIENTE, PRESENTE, AUSENTE, PARCIAL, NO_EXIGIBLE }
 
+/*
+ * Vocabulario del contrato `sigeh-v1` (SHA-256 ab9dd2a4…, docs/mobile/contrato/sigeh-v1.json).
+ * Los nombres de los valores son los códigos exactos del servidor: no renombrar.
+ * `EstadoAsistencia` (arriba) coincide con el `estadoOperativo` de `PaseListaItemDto`.
+ */
+
+/** Estado con el que se captura una jornada (`CapturarAsistenciaDto.estado`). Nunca hay uno por defecto. */
+@Serializable
+enum class EstadoCaptura {
+    PRESENTE,
+    AUSENTE,
+    PARCIAL,
+    ;
+
+    fun aEstadoAsistencia(): EstadoAsistencia = when (this) {
+        PRESENTE -> EstadoAsistencia.PRESENTE
+        AUSENTE -> EstadoAsistencia.AUSENTE
+        PARCIAL -> EstadoAsistencia.PARCIAL
+    }
+}
+
+/** Estado de la programación de la jornada (`PaseListaItemDto.estadoProgramacion`). */
+@Serializable
+enum class EstadoProgramacion { PROGRAMADA, CANCELADA, SUSTITUIDA, CERRADA }
+
+/** Validación administrativa de una captura. "Ausente" no es falta hasta que Coordinación la valida. */
+@Serializable
+enum class ValidacionAdministrativa { PENDIENTE, VALIDADA, OBSERVADA }
+
+/** Por qué el servidor no permite capturar una jornada. La app no lo calcula: lo lee del item. */
+@Serializable
+enum class MotivoNoCapturable {
+    YA_REGISTRADA,
+    FUERA_VENTANA,
+    PROGRAMACION_NO_CAPTURABLE,
+    CONTRATO_NO_VIGENTE,
+    CIERRE_EXISTENTE,
+    SIN_FACULTAD_CAPTURA,
+}
+
+/**
+ * Acuse del servidor tras la primera captura (`CaptureReceiptDto`).
+ * [eventoId] y [revision] son BIGINT decimales: siempre texto, nunca `Long`.
+ * [registradoEn] es ISO-8601 con offset, en la hora del servidor.
+ */
+data class AcuseCaptura(
+    val programacionId: String,
+    val asistenciaId: String,
+    val eventoId: String,
+    val estado: EstadoCaptura,
+    val validacion: ValidacionAdministrativa,
+    val actorId: String,
+    val registradoEn: String,
+    val revision: String,
+)
+
 /** Estados del pase de lista (spec §6.2). */
 enum class EstadoPaseLista { BORRADOR, ENVIADO, VALIDADO, REABIERTO }
 

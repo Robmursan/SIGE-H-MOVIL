@@ -12,7 +12,8 @@ import okhttp3.logging.HttpLoggingInterceptor
  * Registro HTTP solo para builds de debug (la dependencia es `debugImplementation`).
  * - En las rutas de autenticación (`/auth/...`) solo se registran encabezados: los cuerpos llevan
  *   contraseñas y tokens.
- * - En el resto se registran cuerpos, siempre ocultando los encabezados con credenciales.
+ * - En el resto se registran cuerpos, siempre ocultando los encabezados con credenciales y la
+ *   `Idempotency-Key` (no debe quedar en Logcat junto a nombres del pase de lista).
  * Aun en debug, usar solo cuentas y datos ficticios.
  */
 @Module
@@ -39,5 +40,6 @@ object DebugNetworkModule {
         redactHeader("Authorization")
         redactHeader("Cookie")
         redactHeader("Set-Cookie")
+        redactHeader(IdempotencyKeyInterceptor.ENCABEZADO)
     }
 }
