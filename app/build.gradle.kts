@@ -30,6 +30,23 @@ val sigehIamReal: Boolean = (
         ?: "fake"
     ).trim().equals("real", ignoreCase = true)
 
+// Interruptor de asistencia real (M2): `sigeh.api.asistencia=real` usa GET /pases-lista y
+// PUT /programaciones/{id}/asistencia. Solo surte efecto con IAM real (ver NetworkConfig), así se
+// puede probar IAM real con asistencia Fake si el backend tiene ASISTENCIA_ENABLED=false.
+val sigehAsistenciaReal: Boolean = (
+    providers.gradleProperty("sigeh.api.asistencia").orNull
+        ?: localProperties.getProperty("sigeh.api.asistencia")
+        ?: "fake"
+    ).trim().equals("real", ignoreCase = true)
+
+// Funciones sin backend todavía (M2): `sigeh.features.futuras=true` muestra incidencias,
+// movimientos, recepción de eventual, resumen/envío del pase, sincronización y conflictos.
+val sigehFuncionesFuturas: Boolean = (
+    providers.gradleProperty("sigeh.features.futuras").orNull
+        ?: localProperties.getProperty("sigeh.features.futuras")
+        ?: "false"
+    ).trim().equals("true", ignoreCase = true)
+
 android {
     namespace = "mx.sigeh.app"
     compileSdk {
@@ -46,6 +63,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"$sigehApiBaseUrl\"")
         buildConfigField("boolean", "IAM_REAL", sigehIamReal.toString())
+        buildConfigField("boolean", "ASISTENCIA_REAL", sigehAsistenciaReal.toString())
+        buildConfigField("boolean", "FUNCIONES_FUTURAS", sigehFuncionesFuturas.toString())
     }
 
     buildTypes {
