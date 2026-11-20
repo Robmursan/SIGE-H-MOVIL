@@ -38,6 +38,7 @@ object SigehIcons {
     val Info = icono("Info", CIRCULO_12_R9, "M12 16v-4", "M12 8h.01")
     val ArrowLeft = icono("ArrowLeft", "M19 12H5", "m12 19-7-7 7-7")
     val ChevronRight = icono("ChevronRight", "m9 18 6-6-6-6")
+    val ChevronLeft = icono("ChevronLeft", "m15 18-6-6 6-6")
     val ChevronDown = icono("ChevronDown", "m6 9 6 6 6-6")
     val WifiOff = icono(
         "WifiOff",
@@ -139,6 +140,25 @@ object SigehIcons {
 
     /** Cerrar o cancelar. */
     val X = icono("X", "M18 6 6 18", "m6 6 12 12")
+
+    /** Cuenta. */
+    val User = icono("User", "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", "M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0")
+
+    /** Mostrar contraseña. */
+    val Eye = icono(
+        "Eye",
+        "M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0",
+        "M9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0",
+    )
+
+    /** Ocultar contraseña. */
+    val EyeOff = icono(
+        "EyeOff",
+        "M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68",
+        "M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61",
+        "M14.12 14.12a3 3 0 1 1-4.24-4.24",
+        "m2 2 20 20",
+    )
 }
 
 private const val CIRCULO_12_R9 = "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"
