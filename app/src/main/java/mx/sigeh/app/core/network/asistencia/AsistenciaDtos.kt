@@ -5,7 +5,10 @@ import mx.sigeh.app.core.model.AcuseCaptura
 import mx.sigeh.app.core.model.EstadoAsistencia
 import mx.sigeh.app.core.model.EstadoCaptura
 import mx.sigeh.app.core.model.EstadoProgramacion
+import mx.sigeh.app.core.model.JornadaPase
 import mx.sigeh.app.core.model.MotivoNoCapturable
+import mx.sigeh.app.core.model.PaginaPaseLista
+import mx.sigeh.app.core.model.UltimaCaptura
 import mx.sigeh.app.core.model.ValidacionAdministrativa
 
 /*
@@ -34,7 +37,16 @@ data class PaseListaPageDto(
     val limit: Int,
     /** Siempre `id:asc`. */
     val order: String,
-)
+) {
+    fun aPagina() = PaginaPaseLista(
+        hospitalId = hospitalId,
+        servicioId = servicioId,
+        fecha = fecha,
+        zonaHoraria = zonaHoraria,
+        jornadas = items.map { it.aJornada() },
+        siguienteCursor = nextCursor,
+    )
+}
 
 /** Una jornada del pase (`PaseListaItemDto`). La capturabilidad la decide el servidor. */
 @Serializable
@@ -57,7 +69,26 @@ data class PaseListaItemDto(
     val ultimaCaptura: LastCaptureDto? = null,
     val capturable: Boolean,
     val motivoNoCapturable: MotivoNoCapturable? = null,
-)
+) {
+    fun aJornada() = JornadaPase(
+        programacionId = programacionId,
+        empleadoId = empleado.empleadoId,
+        nombre = empleado.nombreVisible,
+        horarioId = horarioId,
+        turnoCodigo = turnoCodigo,
+        inicioProgramado = inicioProgramado,
+        finProgramado = finProgramado,
+        estadoProgramacion = estadoProgramacion,
+        capturada = capturada,
+        asistenciaId = asistenciaId,
+        estadoOperativo = estadoOperativo,
+        validacion = validacionAdministrativa,
+        revision = revision,
+        ultimaCaptura = ultimaCaptura?.let { UltimaCaptura(it.eventoId, it.actorId, it.registradoEn) },
+        capturable = capturable,
+        motivoNoCapturable = motivoNoCapturable,
+    )
+}
 
 /** El contrato no trae segundo apellido: el nombre visible es `nombres + " " + primerApellido`. */
 @Serializable
