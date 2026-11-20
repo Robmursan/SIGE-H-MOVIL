@@ -3,15 +3,16 @@ package mx.sigeh.app.core.network.iam
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 /**
  * IAM V2 de SIGE-H-WEB (`apps/api/src/modules/iam/presentation/auth.controller.ts`), relativo a `/api/v1/`.
  * Mientras el backend tenga `IAM_V2_ENABLED=false`, todas responden 503 "IAM no disponible".
- *
- * No se integran `GET /auth/sessions` ni `DELETE /auth/sessions/:id`: no hay pantalla para ellas en M1.
+ * Las sesiones (`/auth/sessions`) se integran en M2 para la pantalla de Cuenta.
  */
 interface IamApi {
 
@@ -36,6 +37,17 @@ interface IamApi {
     /** operationId `iamLogout`: 204, revoca la sesión actual en el servidor. */
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
+
+    /** operationId `iamSessions`: últimas 50 sesiones propias, sin tokens. 401 · 503. */
+    @GET("auth/sessions")
+    suspend fun sesiones(): List<SessionDto>
+
+    /**
+     * operationId `iamRevokeSession`: 204. 404 si la sesión no es del actor. Revocar la sesión
+     * `current` equivale a cerrar sesión: quien llama purga todo lo local.
+     */
+    @DELETE("auth/sessions/{sessionId}")
+    suspend fun revocarSesion(@Path("sessionId") sessionId: String): Response<Unit>
 }
 
 /** Operaciones (`apps/api/src/modules/operaciones/operaciones.controller.ts`). Sin sesión ni base de datos. */

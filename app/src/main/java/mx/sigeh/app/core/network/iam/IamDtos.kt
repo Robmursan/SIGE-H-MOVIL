@@ -61,6 +61,20 @@ data class ScopeDto(
     val servicioId: String? = null,
 )
 
+/**
+ * Elemento de `GET /auth/sessions` (`SessionDto`, contrato `sigeh-v1`). Fechas ISO-8601.
+ * [current] marca la sesión con la que se hizo la petición.
+ */
+@Serializable
+data class SessionDto(
+    val sessionId: String,
+    val createdAt: String,
+    val expiresAt: String,
+    val idleExpiresAt: String,
+    val revokedAt: String? = null,
+    val current: Boolean,
+)
+
 /** Respuesta de `GET /meta/version` (CU-OPS-03). No acredita compatibilidad de clientes ni readiness. */
 @Serializable
 data class ApiVersionResponse(
