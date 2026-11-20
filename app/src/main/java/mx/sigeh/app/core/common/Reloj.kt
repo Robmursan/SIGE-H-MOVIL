@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 import javax.inject.Inject
 
@@ -30,6 +31,12 @@ object FormatoHora {
     fun hora(millis: Long): String = SimpleDateFormat("HH:mm", Locale.ROOT).format(Date(millis))
 
     fun horaDe(hora: Int, minuto: Int): String = "%02d:%02d".format(Locale.ROOT, hora, minuto)
+
+    /** Instante ISO-8601 con milisegundos y el offset de [zona], p. ej. `2026-11-20T07:05:00.000-06:00`. */
+    fun iso(millis: Long, zona: String): String =
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT)
+            .apply { timeZone = TimeZone.getTimeZone(zona) }
+            .format(Date(millis))
 
     /** "07:55" → (7, 55). Devuelve null si el texto no es una hora válida. */
     fun separar(hora: String): Pair<Int, Int>? {

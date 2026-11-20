@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.common.FormatoHora
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.model.AsistenciaPayload
 import mx.sigeh.app.core.model.ComandoLocal
 import mx.sigeh.app.core.model.CommandStatus
@@ -44,7 +44,7 @@ private data class Seleccion(
 class ConflictoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     colaComandos: ColaComandos,
-    private val paseListaRepository: PaseListaRepository,
+    private val paseListaRepository: PaseListaOfflineRepository,
     private val conflictResolver: ConflictResolver,
     private val scopeCache: ScopeCache,
 ) : ViewModel() {

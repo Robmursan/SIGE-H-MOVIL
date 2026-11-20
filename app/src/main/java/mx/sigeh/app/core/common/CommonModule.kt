@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
+import mx.sigeh.app.BuildConfig
 import mx.sigeh.app.core.model.SigehJson
 
 /** Alcance de corrutinas que vive lo mismo que la aplicación. */
@@ -39,4 +40,8 @@ object CommonModule {
     @Provides
     @Singleton
     fun provideJson(): Json = SigehJson
+
+    @Provides
+    @Singleton
+    fun provideInterruptores(): Interruptores = Interruptores(funcionesFuturas = BuildConfig.FUNCIONES_FUTURAS)
 }

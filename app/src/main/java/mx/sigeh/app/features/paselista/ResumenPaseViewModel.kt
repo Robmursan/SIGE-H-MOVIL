@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.data.CoberturaRepository
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.sync.ColaComandos
 import mx.sigeh.app.core.sync.ConnectivityObserver
 
@@ -22,7 +22,7 @@ import mx.sigeh.app.core.sync.ConnectivityObserver
 @HiltViewModel
 class ResumenPaseViewModel @Inject constructor(
     scopeCache: ScopeCache,
-    paseListaRepository: PaseListaRepository,
+    paseListaRepository: PaseListaOfflineRepository,
     coberturaRepository: CoberturaRepository,
     colaComandos: ColaComandos,
     conectividad: ConnectivityObserver,

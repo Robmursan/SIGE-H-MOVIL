@@ -1,8 +1,11 @@
 package mx.sigeh.app.core.data.fake
 
+import mx.sigeh.app.core.auth.AsignacionSesion
+import mx.sigeh.app.core.auth.CodigosPermiso
 import mx.sigeh.app.core.common.fechaHoraLocal
 import mx.sigeh.app.core.common.finDelDia
 import mx.sigeh.app.core.data.ResultadoElemento
+import mx.sigeh.app.core.data.SesionIam
 import mx.sigeh.app.core.database.entity.PendingCommandEntity
 import mx.sigeh.app.core.database.entity.SyncReceiptEntity
 import mx.sigeh.app.core.model.Agenda
@@ -19,9 +22,12 @@ import mx.sigeh.app.core.model.EstadoDisponibilidadEventual
 import mx.sigeh.app.core.model.EstadoMovimiento
 import mx.sigeh.app.core.model.EstadoNecesidadCobertura
 import mx.sigeh.app.core.model.EstadoPaseSalida
+import mx.sigeh.app.core.model.EstadoProgramacion
 import mx.sigeh.app.core.model.Hospital
 import mx.sigeh.app.core.model.IncidenciaPreliminarPayload
+import mx.sigeh.app.core.model.JornadaPase
 import mx.sigeh.app.core.model.JornadaProgramada
+import mx.sigeh.app.core.model.MotivoNoCapturable
 import mx.sigeh.app.core.model.Movimiento
 import mx.sigeh.app.core.model.NecesidadCobertura
 import mx.sigeh.app.core.model.PersonaEventual
@@ -35,7 +41,9 @@ import mx.sigeh.app.core.model.TipoIncidencia
 import mx.sigeh.app.core.model.TipoMovimiento
 import mx.sigeh.app.core.model.TonoAviso
 import mx.sigeh.app.core.model.Turno
+import mx.sigeh.app.core.model.UltimaCaptura
 import mx.sigeh.app.core.model.Usuario
+import mx.sigeh.app.core.model.ValidacionAdministrativa
 
 /**
  * Datos ficticios de M0 (prompt §6). Sábado 14 de noviembre, Hospital A, División de Medicina,
@@ -327,5 +335,156 @@ object DatosFicticios {
         ResultadoElemento(CMD_JORGE, CommandStatus.APLICADO, 201, "srv-evt-0002", hora(7, 4)),
         ResultadoElemento(CMD_PAOLA, CommandStatus.CONFLICTO, 409, codigo = "REGISTRO_VALIDADO"),
         ResultadoElemento(CMD_LOPEZ, CommandStatus.DENEGADO, 403, codigo = "ALCANCE_VENCIDO"),
+    )
+
+    // --- M2: pase de lista en línea con el modelo del contrato sigeh-v1 (prompt M2 §10) --------
+
+    const val ZONA_HOSPITAL = "America/Mexico_City"
+
+    /** Desde 2022 la Ciudad de México no tiene horario de verano: el offset es fijo. */
+    private const val OFFSET_HOSPITAL = "-06:00"
+    const val HORARIO_TM_ID = "hor-tm"
+    const val HORARIO_TV_ID = "hor-tv"
+
+    /** Autor de una captura hecha por otra persona del servicio: la app muestra «Otro usuario». */
+    const val OTRO_ACTOR_ID = "usr-0099"
+
+    /** Sesión Fake de este dispositivo (la `current` de [sesionesIam]). */
+    const val SESION_ACTUAL_ID = "ses-0001"
+
+    /**
+     * Asignaciones de `/auth/me` en Fake: titular con captura en Medicina Interna, solo consulta en
+     * Cirugía General y una de división sin servicio (se muestra deshabilitada en el selector).
+     * Incluyen `PROGRAMACION_CONSULTAR`, así la pestaña Programación aparece siempre en Fake.
+     */
+    val asignaciones: List<AsignacionSesion> = listOf(
+        AsignacionSesion(
+            rol = RolAlcance.TITULAR,
+            hospitalId = hospitalA.id,
+            divisionId = medicinaInterna.divisionId,
+            servicioId = medicinaInterna.id,
+            permisos = listOf(
+                CodigosPermiso.ASISTENCIA_CAPTURAR,
+                CodigosPermiso.ASISTENCIA_VALIDAR,
+                CodigosPermiso.PROGRAMACION_CONSULTAR,
+                CodigosPermiso.PERSONAL_CONSULTAR,
+            ),
+        ),
+        AsignacionSesion(
+            rol = RolAlcance.ENCARGADO,
+            hospitalId = hospitalA.id,
+            divisionId = cirugiaGeneral.divisionId,
+            servicioId = cirugiaGeneral.id,
+            permisos = listOf(CodigosPermiso.ASISTENCIA_VALIDAR, CodigosPermiso.PROGRAMACION_CONSULTAR),
+        ),
+        AsignacionSesion(
+            rol = RolAlcance.TITULAR,
+            hospitalId = hospitalA.id,
+            divisionId = medicinaInterna.divisionId,
+            servicioId = null,
+            permisos = listOf(CodigosPermiso.ASISTENCIA_VALIDAR),
+        ),
+    )
+
+    /** Nombres visibles de los identificadores ficticios (EtiquetasContexto en Fake). */
+    val nombresContexto: Map<String, String> = mapOf(
+        hospitalA.id to hospitalA.nombre,
+        medicinaInterna.divisionId to medicinaInterna.divisionNombre,
+        cirugiaGeneral.divisionId to cirugiaGeneral.divisionNombre,
+        medicinaInterna.id to medicinaInterna.nombre,
+        cirugiaGeneral.id to cirugiaGeneral.nombre,
+    )
+
+    /** `2026-11-20` + `07:04:12` → `2026-11-20T07:04:12.000-06:00`. */
+    fun instanteHospital(fecha: String, hora: String): String = "${fecha}T$hora.000$OFFSET_HOSPITAL"
+
+    /**
+     * Las 7 jornadas de un día, con un caso de cada tipo: una presente capturada por la persona
+     * de la sesión, dos por capturar, una ausente capturada por otro usuario, una parcial ya
+     * validada, una cancelada y una vespertina que aún no inicia (`FUERA_VENTANA`).
+     *
+     * @param prefijo hace únicos los `programacionId` por servicio y fecha.
+     * @param actorPropioId usuario de la sesión, para que esas capturas se vean como «Tú».
+     */
+    fun jornadasDelDia(prefijo: String, fecha: String, actorPropioId: String): List<JornadaPase> {
+        fun jornada(
+            numero: Int,
+            nombre: String,
+            vespertino: Boolean = false,
+            estadoProgramacion: EstadoProgramacion = EstadoProgramacion.PROGRAMADA,
+            estado: EstadoAsistencia = EstadoAsistencia.PENDIENTE,
+            validacion: ValidacionAdministrativa? = null,
+            captura: UltimaCaptura? = null,
+            motivo: MotivoNoCapturable? = null,
+        ): JornadaPase {
+            val sufijo = numero.toString().padStart(2, '0')
+            return JornadaPase(
+                programacionId = "$prefijo-$sufijo",
+                empleadoId = "emp-m2-$sufijo",
+                nombre = nombre,
+                horarioId = if (vespertino) HORARIO_TV_ID else HORARIO_TM_ID,
+                turnoCodigo = if (vespertino) "TV" else "TM",
+                inicioProgramado = instanteHospital(fecha, if (vespertino) "14:30:00" else "07:00:00"),
+                finProgramado = instanteHospital(fecha, if (vespertino) "21:00:00" else "14:30:00"),
+                estadoProgramacion = estadoProgramacion,
+                capturada = captura != null,
+                asistenciaId = captura?.let { "asi-$prefijo-$sufijo" },
+                estadoOperativo = estado,
+                validacion = validacion,
+                revision = if (captura != null) "1" else "0",
+                ultimaCaptura = captura,
+                capturable = captura == null && motivo == null,
+                motivoNoCapturable = if (captura != null) MotivoNoCapturable.YA_REGISTRADA else motivo,
+            )
+        }
+        return listOf(
+            jornada(
+                1, "Ana Rosales", estado = EstadoAsistencia.PRESENTE, validacion = ValidacionAdministrativa.PENDIENTE,
+                captura = UltimaCaptura("9007199254740993", actorPropioId, instanteHospital(fecha, "07:04:12")),
+            ),
+            jornada(2, "Jorge Salas"),
+            jornada(3, "Lucía Navarro"),
+            jornada(
+                4, "Ricardo Ibarra", estado = EstadoAsistencia.AUSENTE, validacion = ValidacionAdministrativa.PENDIENTE,
+                captura = UltimaCaptura("9007199254740994", OTRO_ACTOR_ID, instanteHospital(fecha, "07:10:45")),
+            ),
+            jornada(
+                5, "Paola Gutiérrez", estado = EstadoAsistencia.PARCIAL, validacion = ValidacionAdministrativa.VALIDADA,
+                captura = UltimaCaptura("9007199254740995", actorPropioId, instanteHospital(fecha, "07:15:03")),
+            ),
+            jornada(
+                6, "Daniela Cruz", estadoProgramacion = EstadoProgramacion.CANCELADA,
+                estado = EstadoAsistencia.NO_EXIGIBLE, motivo = MotivoNoCapturable.PROGRAMACION_NO_CAPTURABLE,
+            ),
+            jornada(7, "Héctor Ruiz", vespertino = true, motivo = MotivoNoCapturable.FUERA_VENTANA),
+        )
+    }
+
+    /** `GET /auth/sessions` en Fake: este teléfono, una tableta activa y una sesión revocada. */
+    fun sesionesIam(): List<SesionIam> = listOf(
+        SesionIam(
+            sessionId = SESION_ACTUAL_ID,
+            iniciadaEn = "2026-11-20T13:00:00.000Z",
+            expiraEn = "2026-11-20T21:00:00.000Z",
+            inactividadExpiraEn = "2026-11-20T13:30:00.000Z",
+            revocadaEn = null,
+            actual = true,
+        ),
+        SesionIam(
+            sessionId = "ses-0002",
+            iniciadaEn = "2026-11-20T12:40:00.000Z",
+            expiraEn = "2026-11-20T20:40:00.000Z",
+            inactividadExpiraEn = "2026-11-20T13:10:00.000Z",
+            revocadaEn = null,
+            actual = false,
+        ),
+        SesionIam(
+            sessionId = "ses-0003",
+            iniciadaEn = "2026-11-19T13:05:00.000Z",
+            expiraEn = "2026-11-19T21:05:00.000Z",
+            inactividadExpiraEn = "2026-11-19T13:35:00.000Z",
+            revocadaEn = "2026-11-19T15:00:00.000Z",
+            actual = false,
+        ),
     )
 }

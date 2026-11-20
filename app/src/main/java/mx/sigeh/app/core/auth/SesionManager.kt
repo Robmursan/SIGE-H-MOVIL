@@ -2,7 +2,9 @@ package mx.sigeh.app.core.auth
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import mx.sigeh.app.core.common.Interruptores
 import mx.sigeh.app.core.data.AuthRepository
+import mx.sigeh.app.core.data.PaseListaRepository
 import mx.sigeh.app.core.data.ResultadoLogin
 import mx.sigeh.app.core.database.PurgaLocal
 import mx.sigeh.app.core.database.dao.PendingCommandDao
@@ -10,9 +12,10 @@ import mx.sigeh.app.core.sync.SyncScheduler
 
 /**
  * Orquesta inicio y cierre de sesión (FC-01).
- * - Cerrar sesión purga Room, la caché del ámbito y la sesión cifrada.
+ * - Cerrar sesión purga Room, la caché del pase en línea, la caché del ámbito y la sesión cifrada.
  * - Si entra otra persona en el mismo teléfono, se purga la cola de la anterior.
- * - Volver a entrar tras una sesión vencida reanuda la cola detenida.
+ * - La cola offline de M0 solo se programa con `FUNCIONES_FUTURAS`: la captura de M2 es en línea
+ *   y nunca pasa por ella.
  */
 @Singleton
 class SesionManager @Inject constructor(
@@ -22,6 +25,8 @@ class SesionManager @Inject constructor(
     private val purgaLocal: PurgaLocal,
     private val pendingCommandDao: PendingCommandDao,
     private val syncScheduler: SyncScheduler,
+    private val paseListaRepository: PaseListaRepository,
+    private val interruptores: Interruptores,
 ) {
 
     suspend fun iniciarSesion(usuario: String, contrasena: String): ResultadoLogin {
@@ -30,8 +35,9 @@ class SesionManager @Inject constructor(
             if (pendingCommandDao.contarDeOtroActor(resultado.sesion.usuarioId) > 0) {
                 purgaLocal.purgarTodo()
             }
+            paseListaRepository.limpiar()
             sessionStore.guardar(resultado.sesion)
-            syncScheduler.programar()
+            if (interruptores.funcionesFuturas) syncScheduler.programar()
         }
         return resultado
     }
@@ -40,14 +46,16 @@ class SesionManager @Inject constructor(
         syncScheduler.cancelar()
         authRepository.cerrarSesion()
         purgaLocal.purgarTodo()
+        paseListaRepository.limpiar()
         scopeCache.limpiar()
         sessionStore.limpiar()
     }
 
-    /** El alcance activo venció: se purga lo local y se vuelve al selector. */
+    /** El alcance activo venció (solo en Fake): se purga lo local y se vuelve al selector. */
     suspend fun purgarPorAlcanceVencido() {
         syncScheduler.cancelar()
         purgaLocal.purgarTodo()
+        paseListaRepository.limpiar()
         scopeCache.limpiar()
     }
 }

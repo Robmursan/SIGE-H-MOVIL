@@ -21,7 +21,7 @@ import mx.sigeh.app.core.data.CoberturaRepository
 import mx.sigeh.app.core.data.ComandoSync
 import mx.sigeh.app.core.data.IncidenciaRepository
 import mx.sigeh.app.core.data.MovimientosRepository
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.data.ProgramacionRepository
 import mx.sigeh.app.core.data.RespuestaConvenio
 import mx.sigeh.app.core.data.ResultadoLogin
@@ -77,7 +77,11 @@ class FakeDataSeeder @Inject constructor(
     }
 }
 
-/** En M0 cualquier usuario y contraseña no vacíos entran, pero el inicio de sesión requiere red. */
+/**
+ * Cualquier usuario y contraseña no vacíos entran, pero el inicio de sesión requiere red.
+ * Desde M2 la sesión trae asignaciones como las de `/auth/me` (una sin servicio), para que el
+ * selector y las facultades funcionen igual que en modo real.
+ */
 class FakeAuthRepository @Inject constructor(
     private val conectividad: ConnectivityObserver,
     private val ids: GeneradorIds,
@@ -91,6 +95,8 @@ class FakeAuthRepository @Inject constructor(
                 usuarioId = DatosFicticios.usuario.id,
                 nombreCorto = DatosFicticios.usuario.nombreCorto,
                 accessToken = "m0-ficticio-${ids.nuevoId()}",
+                sessionId = DatosFicticios.SESION_ACTUAL_ID,
+                asignaciones = DatosFicticios.asignaciones,
             ),
         )
     }
@@ -149,10 +155,10 @@ class FakeProgramacionRepository @Inject constructor(
 }
 
 @Singleton
-class FakePaseListaRepository @Inject constructor(
+class FakePaseListaOfflineRepository @Inject constructor(
     private val servidor: FakeServidor,
     private val seeder: FakeDataSeeder,
-) : PaseListaRepository {
+) : PaseListaOfflineRepository {
 
     private val estado = MutableStateFlow(EstadoPaseLista.BORRADOR)
     private val envioSolicitado = MutableStateFlow<Long?>(null)

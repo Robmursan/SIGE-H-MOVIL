@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.auth.SessionStore
 import mx.sigeh.app.core.common.Reloj
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.model.AmbitoActivo
 import mx.sigeh.app.core.model.ComandoLocal
 import mx.sigeh.app.core.model.ContextoCaptura
@@ -37,7 +37,7 @@ import mx.sigeh.app.core.sync.ConnectivityObserver
 @HiltViewModel
 class PaseListaViewModel @Inject constructor(
     private val scopeCache: ScopeCache,
-    private val paseListaRepository: PaseListaRepository,
+    private val paseListaRepository: PaseListaOfflineRepository,
     private val colaComandos: ColaComandos,
     private val sessionStore: SessionStore,
     private val reloj: Reloj,

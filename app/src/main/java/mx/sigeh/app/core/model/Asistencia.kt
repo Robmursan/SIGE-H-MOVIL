@@ -62,6 +62,58 @@ data class AcuseCaptura(
     val revision: String,
 )
 
+/**
+ * Página del pase de lista en línea (`PaseListaPageDto`). Todo conteo que se haga con
+ * [jornadas] es «en esta página», nunca un total del servicio.
+ */
+data class PaginaPaseLista(
+    val hospitalId: String,
+    val servicioId: String,
+    /** Fecha local consultada, `YYYY-MM-DD`. */
+    val fecha: String,
+    /** Zona IANA del hospital: en ella se calcula «hoy» y se muestran las horas. */
+    val zonaHoraria: String,
+    val jornadas: List<JornadaPase>,
+    /** Cursor para «Cargar más» con los mismos filtros; null si es la última página. */
+    val siguienteCursor: String?,
+)
+
+/**
+ * Jornada del pase en línea (`PaseListaItemDto`). La app no calcula si se puede capturar:
+ * usa [capturable] y [motivoNoCapturable] tal como los envía el servidor.
+ */
+data class JornadaPase(
+    val programacionId: String,
+    val empleadoId: String,
+    /** `nombres + " " + primerApellido` (el contrato no trae segundo apellido). */
+    val nombre: String,
+    val horarioId: String?,
+    val turnoCodigo: String?,
+    /** ISO-8601 con offset. */
+    val inicioProgramado: String,
+    /** ISO-8601 con offset. */
+    val finProgramado: String,
+    val estadoProgramacion: EstadoProgramacion,
+    val capturada: Boolean,
+    val asistenciaId: String?,
+    val estadoOperativo: EstadoAsistencia,
+    val validacion: ValidacionAdministrativa?,
+    /** BIGINT decimal. */
+    val revision: String,
+    val ultimaCaptura: UltimaCaptura?,
+    val capturable: Boolean,
+    val motivoNoCapturable: MotivoNoCapturable?,
+)
+
+/** Quién y cuándo capturó. [actorId] solo se compara con el usuario de la sesión («Tú» / «Otro usuario»). */
+data class UltimaCaptura(
+    /** BIGINT decimal. */
+    val eventoId: String,
+    val actorId: String,
+    /** ISO-8601 con offset, hora del servidor. */
+    val registradoEn: String,
+)
+
 /** Estados del pase de lista (spec §6.2). */
 enum class EstadoPaseLista { BORRADOR, ENVIADO, VALIDADO, REABIERTO }
 

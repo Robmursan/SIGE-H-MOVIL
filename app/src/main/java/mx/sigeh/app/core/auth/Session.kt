@@ -34,7 +34,10 @@ data class Session(
     val sessionId: String? = null,
     /** Instante local en que vence el access token (expiresIn = 300 s en IAM V2). */
     val accessExpiraEnMillis: Long? = null,
-    /** Asignaciones reales de `GET /auth/me`; null en modo Fake (el servidor no informó nada). */
+    /**
+     * Asignaciones de `GET /auth/me` (en Fake, las de `DatosFicticios.asignaciones`). Null solo en
+     * sesiones guardadas por M0, antes de que existieran.
+     */
     val asignaciones: List<AsignacionSesion>? = null,
 ) {
     // Nunca exponer tokens en logs ni en volcados de estado.

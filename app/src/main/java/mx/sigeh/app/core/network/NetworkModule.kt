@@ -38,8 +38,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNetworkConfig(): NetworkConfig =
-        NetworkConfig(urlBase = BuildConfig.API_BASE_URL, iamRealSolicitado = BuildConfig.IAM_REAL)
+    fun provideNetworkConfig(): NetworkConfig = NetworkConfig(
+        urlBase = BuildConfig.API_BASE_URL,
+        iamRealSolicitado = BuildConfig.IAM_REAL,
+        asistenciaRealSolicitada = BuildConfig.ASISTENCIA_REAL,
+    )
 
     @Provides
     @Singleton

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import mx.sigeh.app.core.auth.ScopeCache
-import mx.sigeh.app.core.data.PaseListaRepository
+import mx.sigeh.app.core.data.PaseListaOfflineRepository
 import mx.sigeh.app.core.model.CommandType
 import mx.sigeh.app.core.sync.ColaComandos
 import mx.sigeh.app.core.sync.ConnectivityObserver
@@ -22,7 +22,7 @@ import mx.sigeh.app.features.sincronizacion.describirRegistro
 @HiltViewModel
 class IncidenciasViewModel @Inject constructor(
     scopeCache: ScopeCache,
-    paseListaRepository: PaseListaRepository,
+    paseListaRepository: PaseListaOfflineRepository,
     colaComandos: ColaComandos,
     conectividad: ConnectivityObserver,
 ) : ViewModel() {

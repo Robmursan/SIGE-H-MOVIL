@@ -12,7 +12,7 @@ import mx.sigeh.app.core.auth.Session
 import mx.sigeh.app.core.common.fechaHoraLocal
 import mx.sigeh.app.core.data.fake.DatosFicticios
 import mx.sigeh.app.core.data.fake.FakeDataSeeder
-import mx.sigeh.app.core.data.fake.FakePaseListaRepository
+import mx.sigeh.app.core.data.fake.FakePaseListaOfflineRepository
 import mx.sigeh.app.core.data.fake.FakeServidor
 import mx.sigeh.app.core.database.entity.PendingCommandEntity
 import mx.sigeh.app.core.model.AmbitoActivo
@@ -48,7 +48,7 @@ class PaseListaViewModelTest {
 
     private fun crearViewModel(): PaseListaViewModel {
         val servidor = FakeServidor(reloj)
-        val repositorio = FakePaseListaRepository(servidor, FakeDataSeeder(dao, SyncReceiptDaoFalso(), scheduler))
+        val repositorio = FakePaseListaOfflineRepository(servidor, FakeDataSeeder(dao, SyncReceiptDaoFalso(), scheduler))
         val cola = ColaComandos(dao, SigehJson, reloj, IdsSecuenciales(), scheduler)
         val scope = ScopeCache().apply {
             seleccionar(AmbitoActivo(DatosFicticios.alcances(reloj.ahora).first(), DatosFicticios.matutino))
