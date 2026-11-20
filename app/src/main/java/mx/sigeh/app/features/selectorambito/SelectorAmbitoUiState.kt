@@ -1,35 +1,36 @@
 package mx.sigeh.app.features.selectorambito
 
-data class OpcionServicio(
-    val alcanceId: String,
-    val nombre: String,
-    val division: String,
-    val rolTexto: String,
-    val titular: Boolean,
-    val seleccionado: Boolean,
-)
+import mx.sigeh.app.core.model.RolAlcance
 
-data class OpcionTurno(
-    val id: String,
-    val nombre: String,
-    val horario: String,
-    val seleccionado: Boolean,
+/** Una tarjeta del selector: un ámbito de `/auth/me` con permiso de asistencia (prompt M2 §9.2). */
+data class OpcionAmbito(
+    /** `hospitalId|divisionId|servicioId`, estable entre recomposiciones. */
+    val clave: String,
+    val hospital: String,
+    val division: String?,
+    /** Null en un ámbito de hospital o división: la tarjeta va deshabilitada. */
+    val servicio: String?,
+    val rol: RolAlcance?,
+    /** Chip «Capturar» (`ASISTENCIA_CAPTURAR`). */
+    val capturar: Boolean,
+    /** Chip «Consultar» (`ASISTENCIA_VALIDAR`). */
+    val consultar: Boolean,
+    val habilitada: Boolean,
+    val seleccionada: Boolean,
 )
 
 data class SelectorAmbitoUiState(
     val cargando: Boolean = true,
-    val nombreUsuario: String = "",
-    val hospitalNombre: String = "",
-    val hospitalDetalle: String = "",
-    val servicios: List<OpcionServicio> = emptyList(),
-    val turnos: List<OpcionTurno> = emptyList(),
-    val pendientesSinEnviar: Int = 0,
+    val opciones: List<OpcionAmbito> = emptyList(),
     val cerrandoSesion: Boolean = false,
-    /** IAM no informó ninguna asignación vigente: no se ofrece ningún ámbito. */
-    val sinAsignaciones: Boolean = false,
 ) {
-    val puedeContinuar: Boolean get() = servicios.any { it.seleccionado } && turnos.any { it.seleccionado }
+    val puedeContinuar: Boolean get() = opciones.any { it.seleccionada && it.habilitada }
+
+    /** La sesión no trae ningún ámbito con `ASISTENCIA_CAPTURAR` o `ASISTENCIA_VALIDAR`. */
+    val sinAmbitos: Boolean get() = !cargando && opciones.isEmpty()
 }
+
+const val TEXTO_AMBITO_SIN_SERVICIO = "Este ámbito no indica un servicio. Pide a Coordinación una asignación por servicio."
 
 sealed interface SelectorAmbitoEvento {
     data object Continuar : SelectorAmbitoEvento
