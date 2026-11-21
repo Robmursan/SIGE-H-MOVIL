@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 /*
  * DTO de IAM V2 tomados del contrato real de SIGE-H-WEB:
  * apps/api/src/modules/iam/presentation/auth.dto.ts (rama main, commit 2604aa6, 2026-11-15).
- * Si el backend cambia esos DTO, actualizar aquí y en docs/mobile/contrato-pendiente.md.
+ * Si el backend cambia esos DTO, actualizar aquí y en docs/mobile/contrato.md.
  */
 
 /** Cuerpo de `POST /auth/login`. `identificador`: 1–100 caracteres sin espacios en los extremos. */
