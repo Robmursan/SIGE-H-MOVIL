@@ -23,9 +23,12 @@ object DebugNetworkModule {
     @Provides
     @IntoSet
     @DebugInterceptors
-    fun provideLoggingInterceptor(): Interceptor {
-        val soloEncabezados = registro(HttpLoggingInterceptor.Level.HEADERS)
-        val conCuerpos = registro(HttpLoggingInterceptor.Level.BODY)
+    fun provideLoggingInterceptor(): Interceptor = interceptorDeRegistro(HttpLoggingInterceptor.Logger.DEFAULT)
+
+    /** [logger] es inyectable para probar qué llega al registro. */
+    internal fun interceptorDeRegistro(logger: HttpLoggingInterceptor.Logger): Interceptor {
+        val soloEncabezados = registro(HttpLoggingInterceptor.Level.HEADERS, logger)
+        val conCuerpos = registro(HttpLoggingInterceptor.Level.BODY, logger)
         return Interceptor { chain ->
             if (chain.request().url.encodedPath.contains("/auth/")) {
                 soloEncabezados.intercept(chain)
@@ -35,7 +38,7 @@ object DebugNetworkModule {
         }
     }
 
-    private fun registro(nivel: HttpLoggingInterceptor.Level) = HttpLoggingInterceptor().apply {
+    private fun registro(nivel: HttpLoggingInterceptor.Level, logger: HttpLoggingInterceptor.Logger) = HttpLoggingInterceptor(logger).apply {
         level = nivel
         redactHeader("Authorization")
         redactHeader("Cookie")

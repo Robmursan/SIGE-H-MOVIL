@@ -64,6 +64,7 @@ class RecorridoFakeTest {
     private val paseLista = FakePaseListaRepository(sesiones, reloj)
     private val interruptores = Interruptores(funcionesFuturas = false)
     private val scheduler = SchedulerContador()
+    private val colaOffline = PendingCommandDaoFalso()
     private val sesionManager = SesionManager(
         authRepository = FakeAuthRepository(red, IdsSecuenciales()),
         sessionStore = sesiones,
@@ -71,7 +72,7 @@ class RecorridoFakeTest {
         purgaLocal = object : PurgaLocal {
             override suspend fun purgarTodo() = Unit
         },
-        pendingCommandDao = PendingCommandDaoFalso(),
+        pendingCommandDao = colaOffline,
         syncScheduler = scheduler,
         paseListaRepository = paseLista,
         interruptores = interruptores,
@@ -129,6 +130,8 @@ class RecorridoFakeTest {
         val actualizada = pase.uiState.value.filas.single { it.programacionId == jornada.programacionId }
         assertEquals(TipoFila.CAPTURADA, actualizada.tipo)
         assertTrue(actualizada.lineaCaptura!!.startsWith("Capturado por Tú"))
+        assertTrue("La captura en línea nunca entra a ColaComandos", colaOffline.filas.value.isEmpty())
+        assertEquals("Ni programa el SyncWorker", 0, scheduler.programaciones)
 
         // 9.7 · Detalle desde la caché y el acuse, sin otro endpoint.
         val detalle = DetalleJornadaViewModel(

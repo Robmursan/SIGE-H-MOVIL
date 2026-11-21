@@ -92,8 +92,11 @@ class CuentaViewModel @Inject constructor(
         cargarSesiones()
     }
 
-    fun cargarSesiones() {
-        _uiState.update { it.copy(cargandoSesiones = true, errorSesiones = null) }
+    fun cargarSesiones() = recargarSesiones(aviso = null)
+
+    /** [aviso] se muestra después de recargar (un aviso puesto antes lo borraría la recarga). */
+    private fun recargarSesiones(aviso: String?) {
+        _uiState.update { it.copy(cargandoSesiones = true, errorSesiones = aviso) }
         viewModelScope.launch {
             when (val r = sesiones.sesiones()) {
                 is ResultadoSesiones.Exito -> {
@@ -123,10 +126,7 @@ class CuentaViewModel @Inject constructor(
                     } else {
                         cargarSesiones()
                     }
-                ResultadoRevocacion.NoEncontrada -> {
-                    _uiState.update { it.copy(errorSesiones = "Esa sesión ya no está disponible.") }
-                    cargarSesiones()
-                }
+                ResultadoRevocacion.NoEncontrada -> recargarSesiones(aviso = "Esa sesión ya no está disponible.")
                 ResultadoRevocacion.SesionTerminada -> sessionStore.marcarVencida()
                 ResultadoRevocacion.Fallida -> _uiState.update { it.copy(errorSesiones = "No se pudo cerrar la sesión. Intenta de nuevo.") }
             }
