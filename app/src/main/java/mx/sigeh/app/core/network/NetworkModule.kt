@@ -93,7 +93,7 @@ object NetworkModule {
 /**
  * Crea Retrofit solo cuando hay URL base. Las interfaces existen únicamente para rutas publicadas
  * en el contrato `sigeh-v1` (IAM V2, meta/version y asistencia); el resto sigue pendiente
- * (docs/mobile/contrato-pendiente.md).
+ * (docs/mobile/contrato.md).
  */
 class RetrofitFactory(
     private val client: OkHttpClient,

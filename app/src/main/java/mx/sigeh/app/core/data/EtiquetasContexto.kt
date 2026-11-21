@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 /**
  * Nombres visibles de hospital, división y servicio. `GET /auth/me` solo trae UUID y el backend
- * aún no publica un endpoint de nombres para el usuario (brecha 1 de `docs/mobile/contrato`).
+ * aún no publica un endpoint de nombres para el usuario (brecha 1 de `docs/mobile/contrato.md`, §7).
  * Cuando exista el propuesto `GET /auth/me/contextos`, solo cambia la implementación real.
  *
  * No se llama a `/hospitales`, `/servicios` ni `/hospitales/{id}/divisiones`: piden

@@ -21,7 +21,7 @@ import mx.sigeh.app.core.model.SigehJson
  * - Inbox de idempotencia: el mismo `clientEventId` devuelve la misma respuesta (YA_APLICADO).
  * - Un registro validado por Supervisión nunca se sobrescribe: responde CONFLICTO.
  * - Un encargo vencido produce DENEGADO por elemento.
- * La idempotencia real depende de V2-INBOX en el backend (ver docs/mobile/contrato-pendiente.md).
+ * La idempotencia real depende de V2-INBOX en el backend (ver docs/mobile/contrato.md).
  */
 @Singleton
 class FakeServidor @Inject constructor(
