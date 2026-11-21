@@ -4,6 +4,10 @@
 **Contrato:** `sigeh-v1` (SHA-256 `ab9dd2a4…`, ver [`contrato.md`](contrato.md)) · **Backend de referencia:**
 SIGE-H-WEB `main` `2d1ec62` · **Repositorio:** `Robmursan/SIGE-H-MOVIL`, PR #1 a #6.
 
+> Resumen para compartir con el equipo (documento editable con comentarios):
+> [SIGE-H Móvil · Reporte M2: pase de lista en línea](https://claude.ai/artifact/GHX72d2biNeeuEWbNEf13R).
+> Solo lo abren quienes lo tengan compartido desde la propia página.
+
 ## 1. Alcance
 
 Un jefe de servicio inicia sesión, elige un servicio autorizado, ve el pase de lista del día y registra
