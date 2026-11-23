@@ -8,8 +8,8 @@ Forma parte de una plataforma con tres repositorios:
 | Repositorio | Contenido |
 |---|---|
 | `Robmursan/SIGE-H-MOVIL` (este) | App Android |
-| `Robmursan/SIGE-H-WEB` | Backend (NestJS, PostgreSQL) |
-| `Robmursan/SIGE-H-Fontend` | Portal web y el contrato OpenAPI `contracts/sigeh-v1.json` |
+| `Robmursan/SIGE-H-WEB` | Backend (NestJS, PostgreSQL) y el contrato OpenAPI canónico `artifacts/openapi/sigeh-v1.json` |
+| `Robmursan/SIGE-H-Fontend` | Portal web |
 
 ---
 
@@ -17,8 +17,9 @@ Forma parte de una plataforma con tres repositorios:
 
 - **Inicio de sesión con IAM V2.** Tokens cifrados con Android Keystore, renovación automática y cierre de sesión.
   El pie muestra la versión del contrato del servidor.
-- **Elegir servicio.** Solo ofrece los ámbitos que el servidor autoriza a la sesión (`/auth/me`) con permiso para
-  capturar o consultar asistencia.
+- **Elegir servicio.** Solo ofrece los contextos propios vigentes que el servidor informa (`/auth/me/contextos`),
+  con nombres de hospital y servicio, zona horaria y fecha de término de los encargos, y con permiso para capturar
+  o consultar asistencia. Si esa ruta no está disponible, usa las asignaciones de `/auth/me` («Servicio ··· c91e»).
 - **Pase de lista del día** en la zona horaria del hospital, con filtros por turno.
   - Cada jornada se registra **una sola vez** como Presente, Ausente o Parcial, con **confirmación previa** y
     **acuse del servidor**.
@@ -90,7 +91,9 @@ Comandos de verificación:
 - [`docs/mobile/M2-pase-lista-online.md`](docs/mobile/M2-pase-lista-online.md): alcance de M2, decisiones,
   pruebas y cómo reproducir.
 - [`docs/mobile/contrato/sigeh-v1.json`](docs/mobile/contrato/sigeh-v1.json): copia verificada del contrato
-  (SHA-256 `ab9dd2a4…`).
+  (SHA-256 `a6fbe480…`, 49 operaciones; el móvil usa 12).
+- [`docs/mobile/M3-contrato-49-y-QA.md`](docs/mobile/M3-contrato-49-y-QA.md): qué cambió con el contrato de 49
+  operaciones, el backend simulado y el plan de integración con QA.
 
 ## 🗺️ Hitos
 
@@ -99,7 +102,8 @@ Comandos de verificación:
 | M0 | ✅ | App completa en modo Fake, cola offline y sistema de diseño |
 | M1 | ✅ | IAM V2 real detrás de interruptor |
 | M2 | ✅ | Pase de lista en línea contra el contrato `sigeh-v1`, pantallas rediseñadas y funciones sin backend ocultas |
-| Siguiente | — | Prueba en un dispositivo y contra el backend de QA; nombres de servicio para el usuario (`GET /auth/me/contextos`); captura sin conexión cuando exista el bloque B7 |
+| M3 | 🟡 | Contrato de 49 operaciones (`a6fbe480…`): `GET /auth/me/contextos` integrado y backend simulado HTTP para probar sin QA. Falta la prueba en QA efímero |
+| Siguiente | — | Prueba en un dispositivo y contra el backend de QA con las identidades sintéticas; captura sin conexión cuando exista el bloque B7 |
 
 ---
 

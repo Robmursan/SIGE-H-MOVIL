@@ -13,8 +13,9 @@ import mx.sigeh.app.core.model.ValidacionAdministrativa
 
 /*
  * DTO de asistencia operativa copiados del contrato `sigeh-v1` (docs/mobile/contrato/sigeh-v1.json,
- * SHA-256 ab9dd2a4b17806784c029ca16b79a4837542f83ac3ea3a0246cb6b50a18847f0), que corresponde a
- * SIGE-H-WEB `apps/api/src/modules/asistencia/asistencia.dto.ts` (main, commit 2d1ec62).
+ * SHA-256 a6fbe4804d6ecc7eb88ea78254b4b80bd1f1ad0a4bde6eba70a08358a78dba86, revisión e2e-mvp-02.1), que
+ * corresponde a SIGE-H-WEB `apps/api/src/modules/asistencia/asistencia.dto.ts` (commit 9de9802). Los
+ * esquemas de `/pases-lista` y `PUT …/asistencia` son idénticos a los de la copia anterior (ab9dd2a4…).
  *
  * - Los identificadores grandes (`eventoId`, `revision`) son BIGINT decimales: van como `String`.
  * - Las fechas y horas son ISO-8601 con offset y se dejan como texto (minSdk 24 sin java.time).
