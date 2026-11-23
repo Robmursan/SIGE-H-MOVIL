@@ -1,16 +1,23 @@
-# SIGE-H móvil · Contrato HTTP (M2: pase de lista en línea)
+# SIGE-H móvil · Contrato HTTP (M3: contrato de 49 operaciones)
 
-**Contrato usado:** `contracts/sigeh-v1.json` del repositorio **SIGE-H-Fontend** (rama `main`), copiado
-y verificado en [`docs/mobile/contrato/sigeh-v1.json`](contrato/sigeh-v1.json).
+**Contrato usado:** `artifacts/openapi/sigeh-v1.json` del repositorio **SIGE-H-WEB** (rama
+`feat/codex-b1-iam-org`, publicada como PR #8), copiado y verificado en
+[`docs/mobile/contrato/sigeh-v1.json`](contrato/sigeh-v1.json). Es el contrato canónico que exporta el backend
+(`npm --prefix apps/api run openapi:check`); el handoff Android está en `docs/mobile/ANDROID_API_HANDOFF.md` de ese
+repositorio.
 
 | Dato | Valor |
 |---|---|
-| SHA-256 | `ab9dd2a4b17806784c029ca16b79a4837542f83ac3ea3a0246cb6b50a18847f0` |
-| Versión (`info.version`) | `1.0.0` · 21 operaciones |
-| Backend de referencia | SIGE-H-WEB `main`, commit `2d1ec62` (19-nov-2026, PR #7 «IAM V2, lecturas y asistencia auditable») |
+| SHA-256 | `a6fbe4804d6ecc7eb88ea78254b4b80bd1f1ad0a4bde6eba70a08358a78dba86` (coincide con `sigeh-v1.manifest.json`) |
+| Versión (`info.version`) | `1.0.0` · revisión `e2e-mvp-02.1` · 49 operaciones en 42 rutas |
+| Backend de referencia | SIGE-H-WEB commit `9de9802` (23-nov-2026, «publish scoped SIGE-H API and Android contract») |
 | Prefijo | `/api/v1` |
+| Copia anterior | `ab9dd2a4…` (21 operaciones, SIGE-H-Fontend). De las 21 no cambió ninguna: se agregaron 28 y no se quitó ninguna |
 
-> `docs/api/openapi.json` de SIGE-H-WEB **sigue desactualizado** (5 operaciones). No se usó.
+**Qué cambió para el móvil.** De las operaciones que usa la app, solo `GET /auth/me/contextos` es nueva; login,
+refresh, me, logout, sesiones, `/meta/version`, `/pases-lista`, `PUT …/asistencia`, `/programaciones` y
+`/empleados` tienen exactamente el mismo esquema (comparados con todas sus referencias resueltas). Las otras 27
+operaciones nuevas son de administración organizacional y gestión laboral, que corresponden a SIGE-H Web (§3).
 
 ## 1. Rutas integradas
 
@@ -21,7 +28,8 @@ una sola vez en `SesionAuthenticator`).
 |---|---|---|---|---|---|
 | `POST /auth/login` | iamLogin | pública | `sigeh.api.iam` | Inicio de sesión (9.1). 400/401 genérico, 429 con cuenta regresiva, 503 | `IamAuthRepository` |
 | `POST /auth/refresh` | iamRefresh | pública | `sigeh.api.iam` | Renovación del access token (300 s), proactiva y ante un 401 | `TokenRefresher`, `SesionAuthenticator` |
-| `GET /auth/me` | iamMe | sesión | `sigeh.api.iam` | Asignaciones y permisos → ámbitos del selector (9.2) | `IamAuthRepository`, `PoliticaAmbito` |
+| `GET /auth/me` | iamMe | sesión | `sigeh.api.iam` | Asignaciones y permisos de la sesión; respaldo del selector si contextos no está disponible | `IamAuthRepository`, `PoliticaAmbito` |
+| `GET /auth/me/contextos` | iamOwnContexts | sesión (no pide `CATALOGOS_ADMINISTRAR`) | `sigeh.api.iam` | Selector (9.2): contextos propios vigentes con nombres, zona del hospital y vigencia | `RemotoContextosRepository`, `PoliticaAmbito.ambitosDeContextos` |
 | `POST /auth/logout` | iamLogout | sesión | `sigeh.api.iam` | Cerrar sesión (la purga local ocurre aunque falle) | `IamAuthRepository` |
 | `GET /auth/sessions` | iamSessions | sesión | `sigeh.api.iam` | Sesiones en Cuenta (9.9) | `RemotoSesionesRepository` |
 | `DELETE /auth/sessions/{sessionId}` | iamRevokeSession | sesión | `sigeh.api.iam` | «Cerrar» una sesión; revocar la actual = cerrar sesión y purgar | `RemotoSesionesRepository` |
@@ -41,9 +49,17 @@ tenga. Sin ellos la app oculta lo que dependa de esas rutas.
 
 ## 3. Rutas del contrato que la app no usa
 
+Administración de empleados, organización y gestión laboral **corresponden a SIGE-H Web**; el móvil no tiene
+clientes Retrofit para ellas.
+
 | Ruta | Motivo |
 |---|---|
 | `GET /hospitales`, `GET /hospitales/{hospitalId}/divisiones`, `GET /servicios` | Piden `CATALOGOS_ADMINISTRAR`, una facultad administrativa que un jefe de servicio no tiene |
+| `POST /servicios`, `POST /divisiones`, `POST /subareas`, `GET`/`PATCH /divisiones/{divisionId}`, `GET`/`PATCH /servicios/{servicioId}`, `GET`/`PATCH /subareas/{subareaId}`, `GET /servicios/{servicioId}/subareas`, `GET /organizacion/arbol` | Administración organizacional (nuevas en e2e-mvp-02.1). Web |
+| `GET /personal/elegibles`, `POST /contratos/{contratoId}/adscripciones`, `GET /contratos/{contratoId}/configuracion-laboral`, `POST /contratos/{contratoId}/patrones` | Administración de personal y contratos. Web |
+| `GET /servicios/{servicioId}/distribucion`, `POST /servicios/{servicioId}/rotaciones` | Distribución operativa del servicio. Web |
+| `GET`/`POST /horarios`, `GET`/`POST /patrones-laborales`, `POST /programaciones/simular`, `POST /programaciones/generar` | Calendario y publicación de programación (`CAL_*`, apagadas). Web |
+| `POST /vacaciones`, `POST /incapacidades`, `GET /incidencias`, `GET /incidencias/{incidenciaId}/versiones` | Gestión laboral. Capturar asistencia **no** crea incidencias ni aprueba ausencias. Web |
 | `GET /tableros/coordinacion`, `GET /contratos/{contratoId}/adscripciones` | Son de Coordinación web |
 | `GET /empleados/{empleadoId}` | No hay pantalla que lo necesite |
 | `GET /`, `GET /health`, `GET /health/live`, `GET /health/ready` | Son de operación, no de la app |
@@ -70,12 +86,13 @@ Banderas del backend (todas `false` por defecto; apagadas, la ruta responde 503)
 
 | Bandera | Rutas | Mensaje con la bandera apagada |
 |---|---|---|
-| `IAM_V2_ENABLED` | `/auth/*` y organización | «IAM no disponible» |
+| `IAM_V2_ENABLED` | `/auth/*` (incluida `/auth/me/contextos`) y organización | «IAM no disponible» |
 | `ASISTENCIA_ENABLED` | `/pases-lista` y `PUT …/asistencia` | «Asistencia no habilitada» |
 | `L3A_READS_ENABLED` | `/empleados`, `/programaciones`, tablero | «Lecturas aún no habilitadas» |
 
 En release solo se permite HTTPS (`res/xml/network_security_config.xml`); en debug también HTTP hacia
-`10.0.2.2`, `localhost` y `127.0.0.1`.
+`10.0.2.2`, `localhost`, `127.0.0.1` y la API de integración del equipo en la red local, `10.255.60.40`
+(`sigeh.api.baseUrl=http://10.255.60.40:3000/api/v1/`). La URL va en `local.properties`, nunca en el código.
 
 ## 5. Reglas del contrato que la app respeta
 
@@ -89,6 +106,19 @@ En release solo se permite HTTPS (`res/xml/network_security_config.xml`); en deb
 - **Tokens.** Solo cifrados (AES-GCM, Android Keystore). El registro HTTP de debug no escribe cuerpos de
   `/auth/...` y oculta `Authorization`, cookies e `Idempotency-Key`.
 
+**Contextos (M3).**
+- **Fuente del selector.** `GET /auth/me/contextos` sin parámetros (cualquier query da 400). Los contextos del mismo
+  ámbito se unen como las asignaciones de `/auth/me`: permisos sumados, TITULAR si alguno lo es, y entra un ámbito
+  solo con `ASISTENCIA_CAPTURAR` o `ASISTENCIA_VALIDAR`. `tipo` es informativo: nunca otorga facultades.
+- **Sin descendientes.** Un contexto de hospital o división sin `servicioId` se muestra deshabilitado; la app no
+  enumera servicios hijos.
+- **Respaldo.** La ruta está marcada `prepared-own-contexts-awaiting-sql-validation`. Con 400/403/404/503, un
+  cuerpo ilegible o sin red, el selector usa las asignaciones de `/auth/me` con «Servicio ··· c91e». Un 401 (tras
+  la única renovación) marca la sesión vencida.
+- **Zona y vigencia.** La `zonaHoraria` del contexto elegido es la del primer «hoy» del pase; `vigenteHasta` se
+  muestra como «Vigente hasta 1 dic 00:00» en esa zona. Una lista vacía es válida: no hay contextos vigentes.
+- **Privacidad.** Los contextos viven solo en memoria y no se registran.
+
 **Asistencia (M2).**
 - **Solo en línea.** La captura no pasa por `ColaComandos` ni por WorkManager; sin red, los botones se
   desactivan.
@@ -99,8 +129,8 @@ En release solo se permite HTTPS (`res/xml/network_security_config.xml`); en deb
 - **Capturabilidad.** La decide el servidor (`capturable` y `motivoNoCapturable`); la app no calcula ventanas de
   horario.
 - **Identificadores grandes.** `eventoId` y `revision` se manejan como texto (BIGINT decimal).
-- **Fecha local del hospital.** La primera consulta usa `America/Mexico_City`; después se adopta `zonaHoraria` y,
-  si difiere, se recalcula «hoy» y se repite la consulta.
+- **Fecha local del hospital.** La primera consulta usa la zona del contexto elegido (o `America/Mexico_City` si se
+  eligió con el respaldo); después se adopta `zonaHoraria` y, si difiere, se recalcula «hoy» y se repite la consulta.
 - **Parámetros.** No se envían vacíos ni nulos: el backend responde 400.
 
 ## 6. Errores y cómo se muestran
@@ -123,18 +153,22 @@ El backend responde con el formato por defecto de NestJS (`ReadHttpErrorDto {sta
 | 429 | `Demasiados intentos` | Cuenta regresiva con `Retry-After` |
 | 503 | `Asistencia no habilitada` · `Lecturas aún no habilitadas` | «… no disponible en este servidor», sin reintento automático |
 | 503 | `Asistencia no disponible; reintente con la misma clave` · `IAM no disponible` | «No pudimos confirmar el registro» con «Reintentar» (misma clave) |
+| 400 | `Contextos propios no admite filtros` | Error de programación (la app no envía parámetros); el selector usa el respaldo |
+| 503 | `Contextos no disponibles` | El selector usa las asignaciones de `/auth/me` |
 
 ## 7. Brechas del backend que afectan al móvil
 
 | # | Brecha | Efecto en la app | Propuesta |
 |---|---|---|---|
-| 1 | No hay nombres de hospital, división ni servicio para el usuario | El selector muestra «Servicio ··· c91e» (`EtiquetasPorIdentificador`) | `GET /auth/me/contextos` → `[{ hospitalId, hospitalNombre, divisionId?, divisionNombre?, servicioId, servicioNombre, kind, permissions }]`, filtrado por las asignaciones propias. Solo cambiaría `EtiquetasContexto` |
-| 2 | Los mandatos de hospital o división no enumeran servicios sin `CATALOGOS_ADMINISTRAR` | La tarjeta sale deshabilitada: «Este ámbito no indica un servicio. Pide a Coordinación una asignación por servicio» | Incluir los servicios cubiertos en la propuesta 1 |
+| 1 | ~~No hay nombres de hospital, división ni servicio para el usuario~~ | **Resuelta en 9de9802** con `GET /auth/me/contextos`. «Servicio ··· c91e» queda solo como respaldo | — |
+| 2 | Los mandatos de hospital o división no enumeran servicios sin `CATALOGOS_ADMINISTRAR` | La tarjeta sale deshabilitada: «Este ámbito no indica un servicio. Pide a Coordinación una asignación por servicio». `/auth/me/contextos` tampoco enumera hijos (por diseño) | Asignar al capturista por servicio |
 | 3 | `/programaciones` no trae el nombre del trabajador | Sin `PERSONAL_CONSULTAR`: «Trabajador ··· abcd» | Nombre visible en `ScheduleReadDto` |
 | 4 | No hay catálogo de horarios ni de turnos | Los chips de turno se derivan de los items cargados | Catálogo de horarios del servicio |
 | 5 | No hay conteos agregados del pase | Los contadores dicen «en esta página» | Totales del servicio y fecha en `PaseListaPageDto` |
-| 6 | `docs/api/openapi.json` del backend está desactualizado | Se usó `sigeh-v1` de SIGE-H-Fontend | Regenerar el OpenAPI del backend desde Swagger |
-| 7 | `app.listen(port)` escucha en todas las interfaces de red (`apps/api/src/main.ts`) | En pruebas locales el API queda expuesto en la red | `HOST=127.0.0.1` por defecto en desarrollo |
+| 6 | ~~El OpenAPI del backend estaba desactualizado~~ | **Resuelta**: el canónico es `artifacts/openapi/sigeh-v1.json` con manifiesto y SHA | — |
+| 7 | ~~`app.listen(port)` escuchaba en todas las interfaces~~ | **Resuelta**: `HOST=127.0.0.1` por defecto (`main.ts`, `env.validation.ts`) | — |
+| 8 | Contextos, pase y captura dicen `local-mock-tested-disabled-awaiting-ephemeral-validation` y `x-sigeh-sql-privileges: not-authorized-awaiting-ephemeral-package` | Nada de esto se ha probado contra PostgreSQL real con Android | Correr `docs/mobile/M3-contrato-49-y-QA.md` en QA efímero |
+| 9 | No hay operación HTTP para crear programaciones (`POST /programaciones/generar` sigue apagado) | La prueba de captura depende de que QA tenga una programación sintética legítima en ventana | La prepara el equipo backend; no se insertan filas por SQL |
 
 Siguen vigentes desde M1:
 - **Sin filtro global de errores.** No llegan `code`, `traceId` ni `retryable`.

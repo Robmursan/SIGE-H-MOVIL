@@ -1,5 +1,6 @@
 package mx.sigeh.app.core.auth
 
+import mx.sigeh.app.core.common.HoraHospital
 import mx.sigeh.app.core.model.Alcance
 import mx.sigeh.app.core.model.RolAlcance
 
@@ -46,9 +47,10 @@ data class FacultadesAsistencia(
 }
 
 /**
- * Opción del selector de servicio en M2, construida solo con las asignaciones de `/auth/me`.
- * Sin [servicioId] (ámbito de hospital o división) se muestra deshabilitada: no se enumeran
- * servicios con `/servicios`.
+ * Opción del selector de servicio, construida solo con lo que informa el servidor para la sesión:
+ * los contextos de `/auth/me/contextos` (con nombres) o, como respaldo, las asignaciones de
+ * `/auth/me` (solo UUID). Sin [servicioId] (ámbito de hospital o división) se muestra
+ * deshabilitada: no se enumeran servicios con `/servicios` ni se inventan descendientes.
  */
 data class AmbitoAutorizado(
     val hospitalId: String,
@@ -57,6 +59,17 @@ data class AmbitoAutorizado(
     /** TITULAR, ENCARGADO o null (el contrato permite `kind: null`). */
     val rol: RolAlcance?,
     val permisos: Set<String>,
+    /** Nombres de `/auth/me/contextos`; null si el ámbito salió de `/auth/me`. */
+    val hospitalNombre: String? = null,
+    val divisionNombre: String? = null,
+    val servicioNombre: String? = null,
+    /** Zona IANA del hospital; solo la informa `/auth/me/contextos`. */
+    val zonaHoraria: String? = null,
+    /**
+     * Fin de vigencia más lejano de las asignaciones unidas (date-time ISO-8601). Null si alguna no
+     * tiene término o si el ámbito salió de `/auth/me`, que no informa vigencias.
+     */
+    val vigenteHasta: String? = null,
 ) {
     val facultades: FacultadesAsistencia get() = FacultadesAsistencia.de(permisos)
 
@@ -82,16 +95,56 @@ object PoliticaAmbito {
                     hospitalId = ambito.first,
                     divisionId = ambito.second,
                     servicioId = ambito.third,
-                    rol = when {
-                        grupo.any { it.rol == RolAlcance.TITULAR } -> RolAlcance.TITULAR
-                        grupo.any { it.rol == RolAlcance.ENCARGADO } -> RolAlcance.ENCARGADO
-                        else -> null
-                    },
+                    rol = rolUnido(grupo.map { it.rol }),
                     permisos = grupo.flatMapTo(mutableSetOf()) { it.permisos },
                 )
             }
             .filter { it.facultades.consultarPase }
             .sortedBy { !it.habilitado }
+
+    /**
+     * Ámbitos del selector a partir de `GET /auth/me/contextos`, con la misma regla que
+     * [ambitosAutorizados]: se unen los contextos del mismo ámbito (permisos sumados; TITULAR si
+     * alguno lo es), entra un ámbito si tiene `ASISTENCIA_CAPTURAR` o `ASISTENCIA_VALIDAR` y los que
+     * no indican servicio van al final. De cada grupo se toma el primer nombre no vacío, la zona del
+     * hospital y la vigencia más lejana. Sin contextos no se ofrece nada (denegar por defecto).
+     */
+    fun ambitosDeContextos(contextos: List<ContextoPropio>): List<AmbitoAutorizado> =
+        contextos
+            .groupBy { Triple(it.hospitalId, it.divisionId, it.servicioId) }
+            .map { (ambito, grupo) ->
+                AmbitoAutorizado(
+                    hospitalId = ambito.first,
+                    divisionId = ambito.second,
+                    servicioId = ambito.third,
+                    rol = rolUnido(grupo.map { it.rol }),
+                    permisos = grupo.flatMapTo(mutableSetOf()) { it.permisos },
+                    hospitalNombre = grupo.firstNotNullOfOrNull { c -> c.hospitalNombre.takeIf { it.isNotBlank() } },
+                    divisionNombre = grupo.firstNotNullOfOrNull { c -> c.divisionNombre?.takeIf { it.isNotBlank() } },
+                    servicioNombre = grupo.firstNotNullOfOrNull { c -> c.servicioNombre?.takeIf { it.isNotBlank() } },
+                    zonaHoraria = grupo.firstNotNullOfOrNull { c -> c.zonaHoraria.takeIf { it.isNotBlank() } },
+                    vigenteHasta = vigenciaUnida(grupo.map { it.vigenteHasta }),
+                )
+            }
+            .filter { it.facultades.consultarPase }
+            .sortedBy { !it.habilitado }
+
+    private fun rolUnido(roles: List<RolAlcance?>): RolAlcance? = when {
+        RolAlcance.TITULAR in roles -> RolAlcance.TITULAR
+        RolAlcance.ENCARGADO in roles -> RolAlcance.ENCARGADO
+        else -> null
+    }
+
+    /**
+     * El backend autoriza con cualquier asignación vigente del ámbito, así que el ámbito dura lo que
+     * la más lejana. Si alguna no tiene término, o una fecha no se puede leer, no se muestra vigencia.
+     */
+    private fun vigenciaUnida(fines: List<String?>): String? {
+        if (fines.isEmpty() || fines.any { it == null }) return null
+        val conInstante = fines.filterNotNull().map { it to HoraHospital.instante(it) }
+        if (conInstante.any { it.second == null }) return null
+        return conInstante.maxByOrNull { it.second!! }?.first
+    }
 
     /** Facultades de la sesión en un servicio concreto; sin asignación que lo cubra, ninguna. */
     fun facultadesEn(servicioId: String, asignaciones: List<AsignacionSesion>): FacultadesAsistencia =

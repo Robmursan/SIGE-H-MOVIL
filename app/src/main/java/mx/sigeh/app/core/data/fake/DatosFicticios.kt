@@ -386,6 +386,15 @@ object DatosFicticios {
         ),
     )
 
+    /** `vigenteDesde` de los contextos Fake (`GET /auth/me/contextos`). */
+    const val CONTEXTO_VIGENTE_DESDE = "2026-11-01T06:00:00.000Z"
+
+    /**
+     * `vigenteHasta` de un contexto Fake de tipo ENCARGADO: el backend solo informa encargos con
+     * fecha de término. 1 de diciembre de 2026 a las 00:00 en la zona del hospital.
+     */
+    const val CONTEXTO_ENCARGO_HASTA = "2026-12-01T06:00:00.000Z"
+
     /** Nombres visibles de los identificadores ficticios (EtiquetasContexto en Fake). */
     val nombresContexto: Map<String, String> = mapOf(
         hospitalA.id to hospitalA.nombre,

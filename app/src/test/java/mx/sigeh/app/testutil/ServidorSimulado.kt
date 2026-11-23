@@ -33,6 +33,35 @@ object ContratoIam {
         ]}
     """.trimIndent()
 
+    const val ASIGNACION_SERVICIO = "6a1f4e2c-0000-4000-8000-0000000000e1"
+    const val ASIGNACION_ENCARGO = "6a1f4e2c-0000-4000-8000-0000000000e2"
+    const val ASIGNACION_HOSPITAL = "6a1f4e2c-0000-4000-8000-0000000000e3"
+    const val SERVICIO_ENCARGO_ID = "6a1f4e2c-0000-4000-8000-0000000000d2"
+
+    /**
+     * `GET /auth/me/contextos` (`OwnContextDto[]`, contrato e2e-mvp-02.1). Tres contextos: titular de un
+     * servicio con captura, un encargo con fecha de término, solo consulta y un campo desconocido que se
+     * debe ignorar, y uno de hospital sin división ni servicio (nulos explícitos) con un permiso ajeno a
+     * asistencia.
+     */
+    val CONTEXTOS = """
+        [
+          {"assignmentId":"$ASIGNACION_SERVICIO","hospitalId":"$HOSPITAL_ID","hospitalNombre":"Hospital Sintético A",
+           "zonaHoraria":"America/Mexico_City","divisionId":"$DIVISION_ID","divisionNombre":"División Sintética",
+           "servicioId":"$SERVICIO_ID","servicioNombre":"Servicio Sintético","tipo":"TITULAR",
+           "vigenteDesde":"2026-11-01T00:00:00.000Z","vigenteHasta":null,"permisos":["ASISTENCIA_CAPTURAR"]},
+          {"assignmentId":"$ASIGNACION_ENCARGO","hospitalId":"$HOSPITAL_ID","hospitalNombre":"Hospital Sintético A",
+           "zonaHoraria":"America/Mexico_City","divisionId":"$DIVISION_ID","divisionNombre":"División Sintética",
+           "servicioId":"$SERVICIO_ENCARGO_ID","servicioNombre":"Servicio Sintético de Encargo","tipo":"ENCARGADO",
+           "vigenteDesde":"2026-11-15T06:00:00.000Z","vigenteHasta":"2026-12-01T06:00:00.000Z",
+           "permisos":["ASISTENCIA_VALIDAR"],"campoNuevoDelServidor":"se ignora"},
+          {"assignmentId":"$ASIGNACION_HOSPITAL","hospitalId":"$HOSPITAL_ID","hospitalNombre":"Hospital Sintético A",
+           "zonaHoraria":"America/Mexico_City","divisionId":null,"divisionNombre":null,"servicioId":null,
+           "servicioNombre":null,"tipo":"TITULAR","vigenteDesde":"2026-11-01T00:00:00.000Z","vigenteHasta":null,
+           "permisos":["CATALOGOS_ADMINISTRAR"]}
+        ]
+    """.trimIndent()
+
     fun errorNest(codigo: Int, mensaje: String, error: String) =
         """{"statusCode":$codigo,"message":"$mensaje","error":"$error"}"""
 

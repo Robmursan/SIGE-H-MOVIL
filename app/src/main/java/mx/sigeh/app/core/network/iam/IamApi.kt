@@ -34,6 +34,19 @@ interface IamApi {
     @GET("auth/me")
     suspend fun perfil(@Header("Authorization") autorizacion: String?): ProfileResponse
 
+    /**
+     * operationId `iamOwnContexts` (nuevo en el contrato e2e-mvp-02.1): contextos propios vigentes con
+     * nombres de hospital, división y servicio, y la zona horaria del hospital. Solo pide sesión: no
+     * requiere `CATALOGOS_ADMINISTRAR` ni enumera servicios hijos de una división.
+     *
+     * No admite parámetros: cualquier query responde 400 «Contextos propios no admite filtros».
+     * 401 · 503 «Contextos no disponibles» (persistencia o permisos SQL) · 503 «IAM no disponible».
+     * El contrato la marca `prepared-own-contexts-awaiting-sql-validation`: quien la usa debe tener
+     * un respaldo (las asignaciones de `/auth/me`).
+     */
+    @GET("auth/me/contextos")
+    suspend fun contextos(): List<OwnContextDto>
+
     /** operationId `iamLogout`: 204, revoca la sesión actual en el servidor. */
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>

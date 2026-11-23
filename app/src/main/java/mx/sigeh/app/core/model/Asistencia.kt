@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 enum class EstadoAsistencia { PENDIENTE, PRESENTE, AUSENTE, PARCIAL, NO_EXIGIBLE }
 
 /*
- * Vocabulario del contrato `sigeh-v1` (SHA-256 ab9dd2a4…, docs/mobile/contrato/sigeh-v1.json).
+ * Vocabulario del contrato `sigeh-v1` (SHA-256 a6fbe480…, docs/mobile/contrato/sigeh-v1.json; sin cambios desde ab9dd2a4…).
  * Los nombres de los valores son los códigos exactos del servidor: no renombrar.
  * `EstadoAsistencia` (arriba) coincide con el `estadoOperativo` de `PaseListaItemDto`.
  */

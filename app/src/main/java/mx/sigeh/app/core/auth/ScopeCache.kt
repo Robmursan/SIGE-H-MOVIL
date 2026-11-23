@@ -10,8 +10,9 @@ import mx.sigeh.app.core.model.AmbitoActivo
 import mx.sigeh.app.core.model.RolAlcance
 
 /**
- * Servicio elegido en el selector de M2 (prompt §9.2), salido de una asignación de `/auth/me` con
- * servicio concreto. Los nombres vienen de `EtiquetasContexto` (en real, «Servicio ··· c91e»).
+ * Servicio elegido en el selector (prompt M2 §9.2), salido de un contexto de `/auth/me/contextos`
+ * o, como respaldo, de una asignación de `/auth/me` con servicio concreto. Con contextos los
+ * nombres son los del servidor; con el respaldo vienen de `EtiquetasContexto` («Servicio ··· c91e»).
  */
 data class ServicioActivo(
     val hospitalId: String,
@@ -22,6 +23,13 @@ data class ServicioActivo(
     val hospitalNombre: String,
     val divisionNombre: String?,
     val servicioNombre: String,
+    /**
+     * Zona IANA del hospital según `/auth/me/contextos`. Si se conoce, el pase la usa desde la primera
+     * consulta; si es null, empieza con `America/Mexico_City` y adopta la que devuelva `/pases-lista`.
+     */
+    val zonaHoraria: String? = null,
+    /** Fin de vigencia del contexto (ISO-8601), si el servidor lo informa. */
+    val vigenteHasta: String? = null,
 )
 
 /**

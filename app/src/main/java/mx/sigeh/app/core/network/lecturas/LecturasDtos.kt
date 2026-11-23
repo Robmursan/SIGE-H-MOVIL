@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import mx.sigeh.app.core.model.EstadoProgramacion
 
 /*
- * Lecturas opcionales de M2 (prompt §6.4), copiadas del contrato `sigeh-v1` (SHA-256 ab9dd2a4…):
+ * Lecturas opcionales de M2 (prompt §6.4), copiadas del contrato `sigeh-v1` (SHA-256 a6fbe480…; sin cambios desde ab9dd2a4…):
  * SIGE-H-WEB `apps/api/src/modules/lecturas/read.dto.ts` (main 2d1ec62). Dependen de permisos
  * propuestos que normalmente no tiene un jefe de servicio: la app oculta la pestaña sin ellos.
  */
