@@ -68,8 +68,8 @@ private data class Datos(
  *   (timeout, red, 503, 401) y se reemplaza si el estado cambia.
  * - Un envío en curso desactiva la jornada: dos toques nunca producen dos peticiones.
  * - La confirmación se muestra solo tras el 200 y después se vuelve a pedir `GET /pases-lista`.
- * - La fecha es la local del hospital: se empieza con `America/Mexico_City` y se adopta la
- *   `zonaHoraria` que envía el servidor.
+ * - La fecha es la local del hospital: se empieza con la zona del contexto elegido (o
+ *   `America/Mexico_City` si no se conoce) y se adopta la `zonaHoraria` que envía el servidor.
  */
 @HiltViewModel
 class PaseListaViewModel @Inject constructor(
@@ -91,7 +91,11 @@ class PaseListaViewModel @Inject constructor(
     private var resaltado: Job? = null
 
     init {
-        val zona = savedState.get<String>(CLAVE_ZONA) ?: HoraHospital.ZONA_POR_DEFECTO
+        // Con `/auth/me/contextos` la zona del hospital ya se conoce y la primera consulta usa el «hoy»
+        // correcto; sin ella se empieza con la de por defecto y se adopta la que responda el servidor.
+        val zona = savedState.get<String>(CLAVE_ZONA)
+            ?: scopeCache.servicioActual()?.zonaHoraria?.let { HoraHospital.zona(it).id }
+            ?: HoraHospital.ZONA_POR_DEFECTO
         val fecha = savedState.get<String>(CLAVE_FECHA) ?: HoraHospital.hoy(reloj.ahoraMillis(), zona)
         datos = MutableStateFlow(
             Datos(

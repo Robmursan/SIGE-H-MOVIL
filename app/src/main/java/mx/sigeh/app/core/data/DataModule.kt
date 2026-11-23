@@ -10,6 +10,7 @@ import javax.inject.Singleton
 import mx.sigeh.app.core.data.fake.FakeAlcanceRepository
 import mx.sigeh.app.core.data.fake.FakeAuthRepository
 import mx.sigeh.app.core.data.fake.FakeCoberturaRepository
+import mx.sigeh.app.core.data.fake.FakeContextosRepository
 import mx.sigeh.app.core.data.fake.FakeEtiquetasContexto
 import mx.sigeh.app.core.data.fake.FakeIncidenciaRepository
 import mx.sigeh.app.core.data.fake.FakeMovimientosRepository
@@ -22,6 +23,7 @@ import mx.sigeh.app.core.data.fake.FakeSesionesRepository
 import mx.sigeh.app.core.data.fake.FakeSyncRepository
 import mx.sigeh.app.core.data.remote.IamAuthRepository
 import mx.sigeh.app.core.data.remote.RemoteServidorRepository
+import mx.sigeh.app.core.data.remote.RemotoContextosRepository
 import mx.sigeh.app.core.data.remote.RemotoPaseListaRepository
 import mx.sigeh.app.core.data.remote.RemotoProgramacionRepository
 import mx.sigeh.app.core.data.remote.RemotoSesionesRepository
@@ -30,9 +32,10 @@ import mx.sigeh.app.core.network.NetworkConfig
 /**
  * ÚNICO punto para elegir entre implementaciones Fake y reales.
  *
- * Estado M2 (contrato `sigeh-v1`, SIGE-H-WEB main 2d1ec62):
+ * Estado M3 (contrato `sigeh-v1` e2e-mvp-02.1, SIGE-H-WEB 9de9802, 49 operaciones):
  * - Con `sigeh.api.iam=real` y URL base: Auth (IAM V2), Servidor (`/meta/version`), Sesiones
- *   (`/auth/sessions`) y EtiquetasContexto (texto con el final del UUID).
+ *   (`/auth/sessions`), Contextos (`/auth/me/contextos`) y, como respaldo de contextos,
+ *   EtiquetasContexto (texto con el final del UUID).
  * - Con además `sigeh.api.asistencia=real`: pase de lista y captura (`/pases-lista` y
  *   `PUT /programaciones/{id}/asistencia`).
  * - Siempre Fake: lo que el backend todavía no publica (alcances del catálogo M0, agenda,
@@ -109,7 +112,22 @@ object SeleccionApiModule {
         fake: Provider<FakeSesionesRepository>,
     ): SesionesRepository = if (config.iamReal) real.get() else fake.get()
 
-    /** Los identificadores vienen de `/auth/me`: con IAM real son UUID sin nombre. */
+    /**
+     * `GET /auth/me/contextos` con IAM real (nombres, zona y vigencia de cada contexto propio). En
+     * Fake, las asignaciones ficticias de la sesión con los nombres de `DatosFicticios`.
+     */
+    @Provides
+    @Singleton
+    fun provideContextosRepository(
+        config: NetworkConfig,
+        real: Provider<RemotoContextosRepository>,
+        fake: Provider<FakeContextosRepository>,
+    ): ContextosRepository = if (config.iamReal) real.get() else fake.get()
+
+    /**
+     * Respaldo del selector cuando `/auth/me/contextos` no está disponible: los identificadores de
+     * `/auth/me` son UUID sin nombre en IAM real.
+     */
     @Provides
     @Singleton
     fun provideEtiquetasContexto(

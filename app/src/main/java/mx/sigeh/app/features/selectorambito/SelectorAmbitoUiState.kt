@@ -2,7 +2,10 @@ package mx.sigeh.app.features.selectorambito
 
 import mx.sigeh.app.core.model.RolAlcance
 
-/** Una tarjeta del selector: un ámbito de `/auth/me` con permiso de asistencia (prompt M2 §9.2). */
+/**
+ * Una tarjeta del selector: un ámbito propio con permiso de asistencia (prompt M2 §9.2), de
+ * `/auth/me/contextos` o, como respaldo, de `/auth/me`.
+ */
 data class OpcionAmbito(
     /** `hospitalId|divisionId|servicioId`, estable entre recomposiciones. */
     val clave: String,
@@ -17,6 +20,8 @@ data class OpcionAmbito(
     val consultar: Boolean,
     val habilitada: Boolean,
     val seleccionada: Boolean,
+    /** «Vigente hasta 1 dic 00:00» en la zona del hospital; null si el servidor no informa término. */
+    val vigencia: String? = null,
 )
 
 data class SelectorAmbitoUiState(

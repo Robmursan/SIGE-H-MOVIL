@@ -156,6 +156,13 @@ private fun TarjetaAmbito(opcion: OpcionAmbito, onSeleccionar: () -> Unit) {
                     if (opcion.capturar) StatusPill("Capturar", TonoEstado.POSITIVO, icono = SigehIcons.ClipboardCheck)
                     if (opcion.consultar) StatusPill("Consultar", TonoEstado.INFORMATIVO, icono = SigehIcons.Eye)
                 }
+                opcion.vigencia?.let { vigencia ->
+                    Text(
+                        vigencia,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SigehColors.OnSurfaceVariant,
+                    )
+                }
                 if (!opcion.habilitada) {
                     InfoCallout(texto = TEXTO_AMBITO_SIN_SERVICIO, tono = TonoEstado.NEUTRO, modifier = Modifier.padding(top = 4.dp))
                 }
@@ -174,7 +181,7 @@ private fun SelectorAmbitoScreenPreview() {
                 cargando = false,
                 opciones = listOf(
                     OpcionAmbito("a", "Hospital A", "División de Medicina", "Medicina Interna", RolAlcance.TITULAR, true, true, true, true),
-                    OpcionAmbito("b", "Hospital A", "División de Cirugía", "Cirugía General", RolAlcance.ENCARGADO, false, true, true, false),
+                    OpcionAmbito("b", "Hospital A", "División de Cirugía", "Cirugía General", RolAlcance.ENCARGADO, false, true, true, false, vigencia = "Vigente hasta 1 dic 00:00"),
                     OpcionAmbito("c", "Hospital A", "División de Medicina", null, RolAlcance.TITULAR, false, true, false, false),
                 ),
             ),

@@ -15,6 +15,7 @@ import mx.sigeh.app.core.common.Interruptores
 import mx.sigeh.app.core.data.fake.DatosFicticios
 import mx.sigeh.app.core.data.fake.FakeAlcanceRepository
 import mx.sigeh.app.core.data.fake.FakeAuthRepository
+import mx.sigeh.app.core.data.fake.FakeContextosRepository
 import mx.sigeh.app.core.data.fake.FakeEtiquetasContexto
 import mx.sigeh.app.core.data.fake.FakePaseListaRepository
 import mx.sigeh.app.core.data.fake.FakeServidorRepository
@@ -99,12 +100,13 @@ class RecorridoFakeTest {
         assertEquals("La cola offline no se programa sin FUNCIONES_FUTURAS", 0, scheduler.programaciones)
 
         // 9.2 · Elegir servicio: tres ámbitos Fake, el de división deshabilitado.
-        val selector = SelectorAmbitoViewModel(sesiones, scope, FakeEtiquetasContexto(), sesionManager, FakeAlcanceRepository(reloj), interruptores)
+        val selector = SelectorAmbitoViewModel(sesiones, scope, FakeContextosRepository(sesiones), FakeEtiquetasContexto(), sesionManager, FakeAlcanceRepository(reloj), interruptores)
         val eventosSelector = eventos(selector.eventos)
         advanceUntilIdle()
         val opciones = selector.uiState.value.opciones
         assertEquals(listOf("Medicina Interna", "Cirugía General", null), opciones.map { it.servicio })
         assertFalse(opciones.last().habilitada)
+        assertEquals("Solo el encargo Fake trae fecha de término", listOf(null, "Vigente hasta 1 dic 00:00", null), opciones.map { it.vigencia })
         assertFalse("Dos opciones válidas: no se preselecciona", selector.uiState.value.puedeContinuar)
         selector.onSeleccionar(opciones.last().clave)
         assertFalse("La tarjeta sin servicio no se puede elegir", selector.uiState.value.puedeContinuar)
@@ -113,6 +115,7 @@ class RecorridoFakeTest {
         advanceUntilIdle()
         assertEquals(listOf(SelectorAmbitoEvento.Continuar), eventosSelector)
         assertEquals("Medicina Interna", scope.servicioActual()!!.servicioNombre)
+        assertEquals("America/Mexico_City", scope.servicioActual()!!.zonaHoraria)
 
         // 9.3-9.5 · Pase, confirmación y acuse.
         val pase = PaseListaViewModel(SavedStateHandle(), scope, paseLista, sesiones, red, reloj, IdsSecuenciales())

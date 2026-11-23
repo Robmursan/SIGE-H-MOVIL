@@ -13,14 +13,19 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.sigeh.app.core.auth.AmbitoAutorizado
+import mx.sigeh.app.core.auth.ContextoPropio
 import mx.sigeh.app.core.auth.PoliticaAmbito
 import mx.sigeh.app.core.auth.ScopeCache
 import mx.sigeh.app.core.auth.ServicioActivo
 import mx.sigeh.app.core.auth.SesionManager
 import mx.sigeh.app.core.auth.SessionStore
+import mx.sigeh.app.core.common.HoraHospital
 import mx.sigeh.app.core.common.Interruptores
 import mx.sigeh.app.core.data.AlcanceRepository
+import mx.sigeh.app.core.data.ContextosRepository
 import mx.sigeh.app.core.data.EtiquetasContexto
+import mx.sigeh.app.core.data.EtiquetasPorIdentificador
+import mx.sigeh.app.core.data.ResultadoContextos
 import mx.sigeh.app.core.model.AmbitoActivo
 
 /** Ámbito con sus nombres ya resueltos. */
@@ -34,13 +39,18 @@ private data class AmbitoConNombres(
 }
 
 /**
- * Pantalla 9.2 · Elige tu servicio. Las opciones salen **solo** de `ProfileDto.assignments`
- * (en Fake, de las asignaciones ficticias) mediante [PoliticaAmbito]; no se llama a `/servicios`.
+ * Pantalla 9.2 · Elige tu servicio. Las opciones salen **solo** de lo que el servidor informa para
+ * la sesión, mediante [PoliticaAmbito]; no se llama a `/servicios`:
+ * 1. `GET /auth/me/contextos`: contextos propios vigentes con nombres, zona del hospital y vigencia.
+ * 2. Si contextos no está disponible (503 mientras espera validación SQL, otro error o sin red):
+ *    las asignaciones de `/auth/me` guardadas en la sesión, con etiquetas por identificador.
+ * Un 401 en contextos (tras la única renovación) marca la sesión vencida y la navegación vuelve al login.
  */
 @HiltViewModel
 class SelectorAmbitoViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     private val scopeCache: ScopeCache,
+    private val contextos: ContextosRepository,
     private val etiquetas: EtiquetasContexto,
     private val sesionManager: SesionManager,
     private val alcanceRepository: AlcanceRepository,
@@ -58,15 +68,13 @@ class SelectorAmbitoViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // Sesión guardada por M0 (sin asignaciones): no se ofrece nada; hay que volver a entrar.
-            val asignaciones = sessionStore.actual()?.asignaciones.orEmpty()
-            val lista = PoliticaAmbito.ambitosAutorizados(asignaciones).map { ambito ->
-                AmbitoConNombres(
-                    ambito = ambito,
-                    hospital = etiquetas.etiquetaHospital(ambito.hospitalId),
-                    division = ambito.divisionId?.let { etiquetas.etiquetaDivision(it) },
-                    servicio = ambito.servicioId?.let { etiquetas.etiquetaServicio(it) },
-                )
+            val lista = when (val resultado = contextos.contextosPropios()) {
+                is ResultadoContextos.Exito -> deContextos(resultado.contextos)
+                ResultadoContextos.SesionVencida -> {
+                    sessionStore.marcarVencida()
+                    emptyList()
+                }
+                is ResultadoContextos.NoDisponible, ResultadoContextos.SinConexion -> deAsignaciones()
             }
             ambitos.value = lista
             val habilitadas = lista.filter { it.ambito.habilitado }
@@ -74,6 +82,30 @@ class SelectorAmbitoViewModel @Inject constructor(
             seleccionada = habilitadas.firstOrNull { it.ambito.servicioId == previa }?.clave
                 ?: habilitadas.singleOrNull()?.clave
             publicar(cargando = false)
+        }
+    }
+
+    /** Nombres del servidor; si alguno llega vacío, el mismo texto honesto del respaldo. */
+    private fun deContextos(contextos: List<ContextoPropio>): List<AmbitoConNombres> =
+        PoliticaAmbito.ambitosDeContextos(contextos).map { ambito ->
+            AmbitoConNombres(
+                ambito = ambito,
+                hospital = ambito.hospitalNombre ?: EtiquetasPorIdentificador.etiqueta("Hospital", ambito.hospitalId),
+                division = ambito.divisionId?.let { ambito.divisionNombre ?: EtiquetasPorIdentificador.etiqueta("División", it) },
+                servicio = ambito.servicioId?.let { ambito.servicioNombre ?: EtiquetasPorIdentificador.etiqueta("Servicio", it) },
+            )
+        }
+
+    /** Respaldo: sesión guardada por M0 (sin asignaciones) no ofrece nada; hay que volver a entrar. */
+    private suspend fun deAsignaciones(): List<AmbitoConNombres> {
+        val asignaciones = sessionStore.actual()?.asignaciones.orEmpty()
+        return PoliticaAmbito.ambitosAutorizados(asignaciones).map { ambito ->
+            AmbitoConNombres(
+                ambito = ambito,
+                hospital = etiquetas.etiquetaHospital(ambito.hospitalId),
+                division = ambito.divisionId?.let { etiquetas.etiquetaDivision(it) },
+                servicio = ambito.servicioId?.let { etiquetas.etiquetaServicio(it) },
+            )
         }
     }
 
@@ -96,6 +128,8 @@ class SelectorAmbitoViewModel @Inject constructor(
                 hospitalNombre = elegido.hospital,
                 divisionNombre = elegido.division,
                 servicioNombre = elegido.servicio ?: servicioId,
+                zonaHoraria = elegido.ambito.zonaHoraria,
+                vigenteHasta = elegido.ambito.vigenteHasta,
             ),
         )
         viewModelScope.launch {
@@ -139,9 +173,19 @@ class SelectorAmbitoViewModel @Inject constructor(
                         consultar = it.ambito.facultades.validar,
                         habilitada = it.ambito.habilitado,
                         seleccionada = it.clave == seleccionada,
+                        vigencia = textoVigencia(it.ambito),
                     )
                 },
             )
+        }
+    }
+
+    companion object {
+        /** «Vigente hasta 1 dic 00:00» en la zona del hospital (la del contexto o la de por defecto). */
+        internal fun textoVigencia(ambito: AmbitoAutorizado): String? {
+            val hasta = ambito.vigenteHasta ?: return null
+            val zona = HoraHospital.zona(ambito.zonaHoraria).id
+            return "Vigente hasta ${HoraHospital.fechaHora(hasta, zona)}"
         }
     }
 }

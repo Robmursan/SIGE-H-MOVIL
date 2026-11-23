@@ -49,7 +49,7 @@ enum class TipoErrorApi {
 }
 
 /**
- * Textos exactos que envía SIGE-H-WEB (main 2d1ec62) en `message`, por código HTTP. En los 409 de
+ * Textos exactos que envía SIGE-H-WEB (main 2d1ec62; contextos desde 9de9802) en `message`, por código HTTP. En los 409 de
  * asistencia el `message` es el código de negocio (`YA_REGISTRADA`, `IDEMPOTENCY_CONFLICT`…).
  * Si el backend cambia un texto, la causa queda en null y la app cae al manejo genérico de [TipoErrorApi].
  */
@@ -91,6 +91,13 @@ enum class CausaErrorApi(
 
     /** IAM deshabilitado o su persistencia caída: el backend usa el mismo texto para ambos casos. */
     IAM_NO_DISPONIBLE(503, "IAM no disponible", reintentable = true),
+
+    // `GET /auth/me/contextos`
+    /** La app nunca envía parámetros a contextos: si llega, es un error de programación. */
+    CONTEXTOS_SIN_FILTROS(400, "Contextos propios no admite filtros"),
+
+    /** Persistencia o permisos SQL de contextos no disponibles: el selector usa `/auth/me`. */
+    CONTEXTOS_NO_DISPONIBLES(503, "Contextos no disponibles", reintentable = true),
 
     // Lecturas (`/programaciones`, `/empleados`)
     INTERVALO_INVALIDO(400, "Intervalo inválido: máximo 168 horas"),

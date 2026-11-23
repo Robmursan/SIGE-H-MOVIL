@@ -4,7 +4,9 @@ import kotlinx.serialization.Serializable
 
 /*
  * DTO de IAM V2 tomados del contrato real de SIGE-H-WEB:
- * apps/api/src/modules/iam/presentation/auth.dto.ts (rama main, commit 2604aa6, 2026-11-15).
+ * apps/api/src/modules/iam/presentation/auth.dto.ts y contexts.controller.ts
+ * (contrato `artifacts/openapi/sigeh-v1.json`, revisión e2e-mvp-02.1, commit 9de9802, 2026-11-23,
+ * SHA-256 a6fbe480…). Login, refresh, me, logout y sesiones no cambiaron respecto de 2604aa6.
  * Si el backend cambia esos DTO, actualizar aquí y en docs/mobile/contrato.md.
  */
 
@@ -59,6 +61,39 @@ data class ScopeDto(
     val hospitalId: String,
     val divisionId: String? = null,
     val servicioId: String? = null,
+)
+
+/**
+ * Elemento de `GET /auth/me/contextos` (`OwnContextDto`, operationId `iamOwnContexts`): un contexto
+ * propio **vigente** de la sesión, con nombres legibles. Cada elemento es una asignación
+ * ([assignmentId]); dos asignaciones del mismo ámbito llegan por separado.
+ *
+ * - A diferencia de `/auth/me`, los permisos llegan en `permisos` (no `permissions`) y el rol en `tipo`
+ *   (no `kind`).
+ * - `divisionId`, `divisionNombre`, `servicioId`, `servicioNombre` y `vigenteHasta` son obligatorios en el
+ *   contrato pero admiten `null`: un contexto de hospital o de división no trae servicio. Llevan `= null`
+ *   para aceptar tanto el `null` explícito como el campo ausente.
+ * - `permisos` ya viene filtrado por el backend (un ENCARGADO solo trae lo encargado). Solo decide qué
+ *   mostrar: el servidor vuelve a verificar facultad, sesión, vigencia y ámbito en cada operación.
+ */
+@Serializable
+data class OwnContextDto(
+    val assignmentId: String,
+    val hospitalId: String,
+    val hospitalNombre: String,
+    /** Zona IANA del hospital: define la fecha local de `GET /pases-lista`. */
+    val zonaHoraria: String,
+    val divisionId: String? = null,
+    val divisionNombre: String? = null,
+    val servicioId: String? = null,
+    val servicioNombre: String? = null,
+    /** `TITULAR` o `ENCARGADO`. Solo se muestra: no otorga facultades. */
+    val tipo: String,
+    /** date-time ISO-8601. */
+    val vigenteDesde: String,
+    /** date-time ISO-8601; null si la asignación no tiene término (un ENCARGADO siempre trae uno). */
+    val vigenteHasta: String? = null,
+    val permisos: List<String> = emptyList(),
 )
 
 /**
